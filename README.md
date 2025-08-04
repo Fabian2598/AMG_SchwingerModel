@@ -1,2 +1,3 @@
-# AMG_SchwingerModel
-Algebraic Multigrid Method for the Schwinger model.
+# Algebraic Multigrid Method for the Schwinger model.
+Implementation of Algebric Multigrid Method for the Schwinger model in the context of Lattice simulations. 
+Work in progress ...
