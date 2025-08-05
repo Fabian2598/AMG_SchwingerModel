@@ -22,13 +22,14 @@ static std::string format(const double& number) {
 }
 
 int main(int argc, char **argv) {
-
+   
     using namespace SAPV;
     MPI_Init(&argc, &argv);
     int rank, size; 
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    readParameters("../parameters.dat");
     srand(19);
 
     //srand(time(0));
@@ -95,10 +96,9 @@ int main(int argc, char **argv) {
     
     GaugeConf GConf = GaugeConf(Nx, Nt);
     GConf.initialize(); //Initialize a random gauge configuration
-    readParameters("../parameters.dat");
     for(int l; l< AMGV::levels-1; l++){
-        std::cout << "Level " << l << " Block X " << LBlocks::BlocksX[l] 
-        << " Block T " << LBlocks::BlocksT[l] << " Ntest " << LBlocks::Ntest[l] << " Nagg " << LBlocks::Nagg[l]
+        std::cout << "Level " << l << " Block X " << LevelV::BlocksX[l] 
+        << " Block T " << LevelV::BlocksT[l] << " Ntest " << LevelV::Ntest[l] << " Nagg " << LevelV::Nagg[l]
         << std::endl;
     }
     //Open conf from file//

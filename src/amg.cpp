@@ -42,10 +42,7 @@ void PrintAggregates() {
 }
 
 
-void normalize(spinor& v){
-	c_double norm = sqrt(std::real(dot(v,v))) + 0.0*I_number; 
-	scal(1.0/norm, v, v); //v = v / norm
-}
+
 
 spinor canonical_vector(const int& i, const int& N1, const int& N2) {
 	spinor e_i(N1, c_vector (N2,0.0));
@@ -134,39 +131,48 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 	spinor rhs(LV::Ntot, c_vector(2, 0));
 	using namespace AMGV; //AMG parameters namespace
 
-	//Test vectors random initialization
-	for (int i = 0; i < Ntest; i++) {
-		for (int j = 0; j < LV::Ntot; j++) {
-			for (int k = 0; k < 2; k++) {
-				test_vectors[i][j][k] = eps * RandomU1();
-			}
+	//Test vectors random initialization for each level (except the coarsest level)
+	for(int l=0; l<AMGV::levels-1; l++){
+		for (int i = 0; i < LevelV::Ntest[l]; i++) {
+		for (int n = 0; n < LevelV::Nsites[l]; n++) {
+		for (int dof = 0; dof < LevelV::DOF[l]; dof++) {
+			level_l[l].test_vectors[i][n][dof] = eps * RandomU1();
+		}
+		}
 		}
 	}
-
-	//Improving the test vectors by approximately solving the linear system D test_vectors[i] = rhs 
-	for (int i = 0; i < Ntest; i++) {
 	
-		//Right hand side of the linear system 
-		//rhs = test_vectors[i];  
-		//rhs(LV::Ntot, c_vector(2, 0));
-		//The result will be stored in test_vectors[i]
-		double startT, endT;
-		startT = MPI_Wtime();
-		SAP(GConf.Conf, rhs, test_vectors[i], m0, AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc);  
-		endT = MPI_Wtime();
-		SAP_time += endT - startT; 
-			
+	//Improving the test vectors by approximately solving the linear system D test_vectors[i] = rhs 
+	for(int l=0; l<AMGV::levels-1; l++){
+		for (int i = 0; i < LevelV::Ntest[l]; i++) {
+	
+			//Right hand side of the linear system 
+			//rhs = test_vectors[i];  
+			//rhs(LV::Ntot, c_vector(2, 0));
+			//The result will be stored in test_vectors[i]
+			//double startT, endT;
+			//startT = MPI_Wtime();
+			//I need to rewrite this method as a general class that I can use for every level
+			SAP(GConf.Conf, rhs, level_l[l].test_vectors[i], m0, AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc);  
+			//endT = MPI_Wtime();
+			//SAP_time += endT - startT; 	
+		}
+		//Build the interpolator between level l and l+1
+		level_l[l].interpolator_columns = test_vectors; 
+		level_l[l].orthonormalize(); 
+		level_l[l].initializeCoarseLinks();
+		//level_l[l+1].coasrseLinks = 
+		//level l+1 will need 	the coarseLinks to "assemble" its own operator Dc
 	}
 
-	//This modifies interpolator_columns which is used in the interpolator NOT test_vectors
-	interpolator_columns = test_vectors; 
-	orthonormalize(); 
-	initializeCoarseLinks();
+
 	
 	//Improving the interpolator quality by iterating over the two-grid method defined by the current test vectors
 	if (rank == 0){std::cout << "Improving interpolator" << std::endl;}
-	for (int n = 0; n < Nit; n++) {
-		if (rank == 0){std::cout << "****** Bootstrap iteration " << n << " ******" << std::endl;}
+	for (int it = 0; it < Nit; it++) {
+		if (rank == 0){std::cout << "****** Bootstrap iteration " << it << " ******" << std::endl;}
+		for(int l = 0; l<AMGV::levels-1; l++){
+
 		for (int i = 0; i < Ntest; i++) {
 			//Number of two-grid iterations for each test vector 
 			int two_grid_iter = 1; 
@@ -175,11 +181,16 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 			double tolerance = 1e-10; 
 			rhs = test_vectors[i];
 			TwoGrid(two_grid_iter,tolerance, rhs,rhs, test_vectors[i], false); 
+			//I have to call a function that applies the method for the other levels.
+			//For instance, for l=0 it will apply the full method.
+			//For l=1 it will only apply the method for the levels l>1 
+			//For l=2 ""                                        "" l>2  
 		}
 		//"Assemble" the new interpolator
 		interpolator_columns = test_vectors; 
 		orthonormalize();
 		initializeCoarseLinks();
+		}
 
 	}
 

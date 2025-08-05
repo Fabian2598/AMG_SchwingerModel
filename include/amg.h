@@ -18,10 +18,6 @@ void Aggregates();
 */
 void PrintAggregates();
 
-/*
-	Normalize a spinor.
-*/
-void normalize(spinor& v); 
 
 /*
 	Canonical vector written in spinor notation
@@ -87,6 +83,11 @@ public:
 		//c_matrix DcMatrix = c_matrix(AMGV::Ntest*AMGV::Nagg, c_vector(AMGV::Ntest*AMGV::Nagg,0));
 		P_TEMP = spinor(LV::Ntot, c_vector(2,0)); //Temporary spinor for the coarse grid operator
 		Pt_TEMP = spinor(AMGV::Ntest, c_vector(AMGV::Nagg, 0)); //Temporary spinor for the coarse grid operator
+		/*
+		for(int l = 0; l<AMGV::levels; l++){
+			level_l.push_back(AMG_LEVEL(something for level l));
+		}
+		*/
 	}
 	~AMG() { };
 
@@ -149,6 +150,7 @@ private:
 	std::vector<spinor> test_vectors; //test vectors[Ntest][Nx Nt][spin components], no color
 	std::vector<spinor> interpolator_columns; 
 	std::vector<spinor> v_chopped;
+	//std::vector<Level> level_l;
 	spinor Pt_TEMP;
 	spinor P_TEMP;
 	

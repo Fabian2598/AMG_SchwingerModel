@@ -69,11 +69,18 @@ namespace AMGV{
     extern bool SetUpDone; 
 }
 
-namespace LBlocks{
+namespace LevelV{
     extern int BlocksX[AMGV::levels-1];
     extern int BlocksT[AMGV::levels-1];
     extern int Ntest[AMGV::levels-1]; 
     extern int Nagg[AMGV::levels-1]; 
+    extern int NBlocks[AMGV::levels-1];
+
+    extern int Nsites[AMGV::levels]; //Number of lattice sites at level l
+    extern int NxSites[AMGV::levels];
+    extern int NtSites[AMGV::levels];
+    extern int DOF[AMGV::levels]; //Number of degrees of freedom at each lattice site.
+    //On the finest level, DOF = 2 (only spin), on the coarse levels DOF = 2*Ntest
 }
 
 //--------------Parameters for FGMRES--------------//

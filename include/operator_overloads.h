@@ -132,6 +132,16 @@ inline void PrintComplexVector(const c_vector& v ){
     std::cout << std::endl;
 }
 
+
+/*
+	Normalize a spinor.
+*/
+inline void normalize(spinor& v){
+	c_double norm = sqrt(std::real(dot(v,v))) + 0.0*I_number; 
+	scal(1.0/norm, v, v); //v = v / norm
+}
+
+
 #endif 
 
 
