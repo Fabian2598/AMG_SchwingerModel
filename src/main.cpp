@@ -70,15 +70,48 @@ int main(int argc, char **argv) {
     Level1.makeAggregates();
     Level0.makeBlocks();
     Level1.makeBlocks();
+    Level0.setUp();
 
-    Level0.printAggregates();
-    Level1.printAggregates();
+    spinor v(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor vNew(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor w(LevelV::Ntest[0],c_vector(LevelV::Nagg[0],0));
+    spinor wNew(LevelV::Nsites[1],c_vector(LevelV::DOF[1],0));
+    for(int i = 0; i<LevelV::Nsites[0]; i++){
+    for(int j = 0; j<LevelV::DOF[0]; j++){
+        v[i][j] = RandomU1();
+    }
+    }
 
 
-    Level0.printBlocks();
-    Level1.printBlocks();
+    GaugeConf GConf = GaugeConf(LV::Nx, LV::Nt);
+    GConf.initialize();
+    AMG testAMG(GConf,m0, 0, 2);
+    testAMG.setUpPhase(1,1);
+    testAMG.Pt_v(v,w);
+    Level0.Pt_v(v,wNew);
+    
+    int a, c, n, s;
+    for(int c = 0; c<LevelV::Ntest[0]; c++){
+        for(int a = 0; a<LevelV::Nagg[0]; a++){
+            n = a/2; //Lattice block
+            s = a%2; //spin
+            std::cout << "w[" << c << "][" << a << "] " << w[c][a] << "  " <<  wNew[n][2*c+s] << std::endl;
+            w[c][a] = RandomU1();
+            wNew[n][2*c+s] = w[c][a];
+        }
+    }
 
-    PrintAggregates();
+        std::cout << " ------------------ " << std::endl;
+
+    Level0.P_v(wNew,vNew);
+    testAMG.P_v(w,v);
+    for(int i = 0; i<LevelV::Nsites[0]; i++){
+    for(int j = 0; j<LevelV::DOF[0]; j++){
+        std::cout << "v[" << i << "][" << j << "] " << v[i][j] << "  " << vNew[i][j] << std::endl;
+    }
+    }
+
+    
    
     
     return 0;

@@ -117,7 +117,7 @@ public:
 	int TwoGrid(const int& max_iter, const double& tol,
 		const spinor& x0, const spinor& phi,spinor & x,const bool& print_message);
 
-private:
+//private:
 	GaugeConf GConf;
 	double m0; 
 	int nu1, nu2; 

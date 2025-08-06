@@ -10,12 +10,12 @@
 class Level {
 public:
     Level(const int& level) : level(level) {
-        test_vectors = std::vector<spinor>(LevelV::Ntest[level],
-        spinor( LevelV::Nsites[level], c_vector (LevelV::DOF[level],0))); 
-	    interpolator_columns = std::vector<spinor>(LevelV::Ntest[level],
-        spinor( LevelV::Nsites[level], c_vector (LevelV::DOF[level],0))); 
-	    v_chopped = std::vector<spinor>(LevelV::Ntest[level],
-        spinor( LevelV::Nsites[level], c_vector (LevelV::DOF[level],0))); 
+        test_vectors = std::vector<spinor>(Ntest,
+        spinor( Nsites, c_vector (DOF,0))); 
+	    interpolator_columns = std::vector<spinor>(Ntest,
+        spinor( Nsites, c_vector (DOF,0))); 
+	    v_chopped = std::vector<spinor>(Ntest,
+        spinor( Nsites, c_vector (DOF,0)));  
 
         x_elements = LevelV::NxSites[level] / LevelV::BlocksX[level]; 
         t_elements = LevelV::NtSites[level] / LevelV::BlocksT[level]; 
@@ -23,8 +23,8 @@ public:
         
         //For level = 0 DOF[level] = 2
         //For level = 1 DOF[level] = 2 * LevelV::Ntest[level-1] = 2 * LevelV::Colors[level]
-        Agg = new int[LevelV::NBlocks[level] * LevelV::DOF[level] * sites_per_block]; 
-        LatticeBlocks = new int[LevelV::NBlocks[level] * sites_per_block];
+        Agg = new int[NBlocks * DOF * sites_per_block]; 
+        LatticeBlocks = new int[NBlocks * sites_per_block];
         nCoords = new int[Nsites * 2 * colors];
         sCoords = new int[Nsites * 2 * colors];
         cCoords = new int[Nsites * 2 * colors];
@@ -45,11 +45,12 @@ public:
     int level; 
     int x_elements = LevelV::NxSites[level] / LevelV::BlocksX[level], t_elements = LevelV::NtSites[level] / LevelV::BlocksT[level]; //x and t elements of each lattice block
     int sites_per_block = x_elements * t_elements;
+    int NBlocks = LevelV::NBlocks[level]; //Number of lattice blocks 
     int colors = LevelV::Colors[level]; //Number of colors at this level
     int Nsites = LevelV::Nsites[level]; //Number of lattice sites at this level
     int Ntest = LevelV::Ntest[level]; //Number of test vectors to go to the next level
     int Nagg = LevelV::Nagg[level]; //Number of aggregates to go to the next level
-    int dof = LevelV::DOF[level]; //Degrees of freedom at each lattice site 
+    int DOF = LevelV::DOF[level]; //Degrees of freedom at each lattice site at this level
 
     
     //Coarse gauge links --> Used to assemble the operator for the level l+1
@@ -85,6 +86,8 @@ public:
     void makeBlocks();
     void printBlocks();
 
+    void setUp(); //This is just for testing
+
 
     //---The coarsest level does not need these operators---//
     /*
@@ -99,7 +102,7 @@ public:
 	x_i = P^dagg_ij v_j. dim(P^dagg) =  Ntest Nagg x DOF Nsites,
 	dim(v) = [Nsites][DOF], dim(x) = [NBlocks][2*Ntest] 
     */
-    //void Pt_v(const spinor& v,spinor& out);
+    void Pt_v(const spinor& v,spinor& out);
 
     //void D_operator(const spinor& v,spinor& out); //--> This operator has to be constructed with the gauge links from the 
     //previous level

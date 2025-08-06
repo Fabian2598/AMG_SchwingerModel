@@ -125,11 +125,22 @@ void AMG::orthonormalize(){
 }; 
 
 void AMG::setUpPhase(const double& eps,const int& Nit) {
+	for (int i = 0; i < LevelV::Ntest[0]; i++) {
+		for (int n = 0; n < LevelV::Nsites[0]; n++) {
+			for (int dof = 0; dof < LevelV::DOF[0]; dof++) {
+				test_vectors[i][n][dof] = i*LevelV::Nsites[0]*LevelV::DOF[0] + n*LevelV::DOF[0] + dof;
+			}
+		}
+	}
+	interpolator_columns = test_vectors; 
+	
 	//Call MPI for SAP parallelization
+	/*
 	int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	spinor rhs(LV::Ntot, c_vector(2, 0));
 	using namespace AMGV; //AMG parameters namespace
+	*/
 
 	//Test vectors random initialization for each level (except the coarsest level)
 	/*
@@ -169,7 +180,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 	}
 	*/
 
-	
+	/*
 	//Improving the interpolator quality by iterating over the two-grid method defined by the current test vectors
 	if (rank == 0){std::cout << "Improving interpolator" << std::endl;}
 	for (int it = 0; it < Nit; it++) {
@@ -198,7 +209,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 	}
 
 	if (rank == 0){std::cout << "Set-up phase finished" << std::endl;}
-		
+	*/	
 }
 
 /*
@@ -225,7 +236,6 @@ void AMG::P_v(const spinor& v,spinor& out) {
 			out[Coords[x_coord][t_coord]][s_coord] += interpolator_columns[k][Coords[x_coord][t_coord]][s_coord] * v[k][a];			
 		}
 	}
-	//return x;
 }
 
 /*
@@ -253,7 +263,6 @@ void AMG::Pt_v(const spinor& v,spinor& out) {
 			out[k][a] += std::conj(interpolator_columns[k][Coords[x_coord][t_coord]][s_coord]) * v[Coords[x_coord][t_coord]][s_coord];
 		}
 	}
-
 }
 
 /*

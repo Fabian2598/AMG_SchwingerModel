@@ -41,7 +41,7 @@ void Level::printAggregates() {
 		for (int n = 0; n < sites_per_block; n++) {
 		for (int c = 0; c < colors; c++){
 			var = Agg[i * sites_per_block * LevelV::Colors[level] + n * LevelV::Colors[level] + c ];
-			std::cout << "[" << nCoords[var] << "][" << cCoords[var]  << "]["  << sCoords[var] << "] " << Agg[i * sites_per_block * LevelV::Colors[level] + n * LevelV::Colors[level] + c ] << " ";
+			std::cout << "n=" << nCoords[var] << " c=" << cCoords[var]  << " s="  << sCoords[var] << " " << Agg[i * sites_per_block * LevelV::Colors[level] + n * LevelV::Colors[level] + c ] << " \n";
 		//std::cout << Agg[i * sites_per_block * LevelV::Colors[level] + n * LevelV::Colors[level] + c ] << " ";
 		}	
 		}
@@ -83,22 +83,22 @@ void Level::printBlocks() {
 	}
 }
 
-
-
 void Level::P_v(const spinor& v,spinor& out){
 	//Loop over columns
 	for(int n = 0; n < Nsites; n++){
-		for(int alf = 0; alf < dof; alf++){
+		for(int alf = 0; alf < DOF; alf++){
 			out[n][alf] = 0.0; //Initialize the output spinor
 		}
 	}
 	int n, s, c; //Coordinates of the lattice point
-	int k, a;
+	int nc, sc,cc; //ncoarse (block), sc (spin coarse), cc (coarse color)
 	int i, j; //Loop indices
+	int a;
 
 	for (j = 0; j < Ntest*Nagg; j++) {
-		k = j / Nagg; //Number of test vector
+		cc = j / Nagg; //Number of test vector
 		a = j % Nagg; //Number of aggregate
+		nc = a/2; //Number of lattice block
 		//Each aggregate has x_elements * t_elements * Colors elements
 		for (i = 0; i < colors * x_elements * t_elements; i++) {
 			//Agg[a * sites_per_block * Colors + j * Colors + k]
@@ -106,8 +106,46 @@ void Level::P_v(const spinor& v,spinor& out){
 			n = nCoords[Agg[a * sites_per_block * colors + i]];
 			s = sCoords[Agg[a * sites_per_block * colors + i]];
 			c = cCoords[Agg[a * sites_per_block * colors + i]];
-			out[n][2*c + s] += interpolator_columns[k][n][2*c+s] * v[k][a];		
+			out[n][2*c + s] += interpolator_columns[cc][n][2*c+s] * v[nc][2*cc+s];//v[k][a];		
 		}
 	}
     
+}
+
+
+void Level::Pt_v(const spinor& v,spinor& out) {
+	//Restriction operator times a spinor
+	for(int n = 0; n < NBlocks; n++){
+		for(int alf = 0; alf < 2*Ntest; alf++){
+			out[n][alf] = 0.0; //Initialize the output spinor
+		}
+	}
+	int n, s, c; //Fine variables
+	int nc, sc,cc; //Coarse variables s = sc
+	int i, j; //Loop indices
+	int a; //Aggregate
+	int var; 
+
+	for (i = 0; i < Ntest*Nagg; i++) {	
+		cc = i / Nagg; //Number of test vector
+		a = i % Nagg; //Number of aggregate
+		nc = a/2; //Number of lattice block
+		for (j = 0; j < colors * x_elements * t_elements; j++) {
+			//Agg[a * sites_per_block * Colors + j], j from 0 to LevelV::Colors[level] * x_elements * t_elements - 1
+			var = Agg[a * sites_per_block * colors + j]; 
+			n = nCoords[var]; s = sCoords[var]; c = cCoords[var];
+			out[nc][2*cc+s] += std::conj(interpolator_columns[cc][n][2*c+s]) * v[n][2*c+s];
+		}
+	}
+
+}
+
+void Level::setUp(){
+	for (int i = 0; i < Ntest; i++) {
+		for (int n = 0; n < Nsites; n++) {
+			for (int dof = 0; dof < DOF; dof++) {
+				interpolator_columns[i][n][dof] = i*Nsites*DOF + n*DOF + dof;
+			}
+		}
+	}
 }
