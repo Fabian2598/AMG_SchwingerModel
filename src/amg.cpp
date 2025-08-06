@@ -132,6 +132,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 	using namespace AMGV; //AMG parameters namespace
 
 	//Test vectors random initialization for each level (except the coarsest level)
+	/*
 	for(int l=0; l<AMGV::levels-1; l++){
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
 		for (int n = 0; n < LevelV::Nsites[l]; n++) {
@@ -141,8 +142,10 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 		}
 		}
 	}
-	
+	*/
+
 	//Improving the test vectors by approximately solving the linear system D test_vectors[i] = rhs 
+	/*
 	for(int l=0; l<AMGV::levels-1; l++){
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
 	
@@ -164,7 +167,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 		//level_l[l+1].coasrseLinks = 
 		//level l+1 will need 	the coarseLinks to "assemble" its own operator Dc
 	}
-
+	*/
 
 	
 	//Improving the interpolator quality by iterating over the two-grid method defined by the current test vectors

@@ -81,6 +81,8 @@ namespace LevelV{
     extern int NtSites[AMGV::levels];
     extern int DOF[AMGV::levels]; //Number of degrees of freedom at each lattice site.
     //On the finest level, DOF = 2 (only spin), on the coarse levels DOF = 2*Ntest
+    extern int Colors[AMGV::levels]; //Number of "colors" at each level 
+    constexpr int maxLevel = AMGV::levels - 1; //Maximum level id is levels - 1
 }
 
 //--------------Parameters for FGMRES--------------//

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.26.5)
 set(CMAKE_CXX_STANDARD 20) 
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-project(TwoGrid VERSION 1.0)
+project(Multigrid VERSION 1.0)
 
 #Source files
 set(SRC_FILES 
@@ -13,12 +13,13 @@ set(SRC_FILES
     src/sap.cpp                 #Schwarz alternating method
     src/amg.cpp                 #Two-grid implementation 
     src/main.cpp                #Main program
+    src/level.cpp
     src/fgmres.cpp              #Flexible GMRES solver
 )
 
 #--------------------------Lattice dimensions---------------------------#
-set(NS "32") #Space
-set(NT "32") #Time
+set(NS "16") #Space
+set(NT "16") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#

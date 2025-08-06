@@ -47,6 +47,7 @@ namespace LevelV{
     int NxSites[AMGV::levels];
     int NtSites[AMGV::levels];
     int DOF[AMGV::levels];
+    int Colors[AMGV::levels];
 };
 
 
