@@ -6,11 +6,16 @@
 #include <vector>
 
 typedef std::complex<double> c_double;
+constexpr c_double I_number(0, 1);
 constexpr double pi=3.14159265359;
 
 extern double coarse_time; //Time spent in the coarse grid solver
 extern double smooth_time; //Time spent in the smoother
 extern double SAP_time;
+
+namespace mass{
+    extern double m0;
+}
 
 
 //------------Lattice parameters--------------//
@@ -75,7 +80,7 @@ namespace LevelV{
     extern int Ntest[AMGV::levels-1]; 
     extern int Nagg[AMGV::levels-1]; 
     extern int NBlocks[AMGV::levels-1];
-
+    
     extern int Nsites[AMGV::levels]; //Number of lattice sites at level l
     extern int NxSites[AMGV::levels];
     extern int NtSites[AMGV::levels];

@@ -128,7 +128,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 	for (int i = 0; i < LevelV::Ntest[0]; i++) {
 		for (int n = 0; n < LevelV::Nsites[0]; n++) {
 			for (int dof = 0; dof < LevelV::DOF[0]; dof++) {
-				test_vectors[i][n][dof] = i*LevelV::Nsites[0]*LevelV::DOF[0] + n*LevelV::DOF[0] + dof;
+				test_vectors[i][n][dof] = 1;//i*LevelV::Nsites[0]*LevelV::DOF[0] + n*LevelV::DOF[0] + dof;
 			}
 		}
 	}
@@ -175,7 +175,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 		level_l[l].interpolator_columns = test_vectors; 
 		level_l[l].orthonormalize(); 
 		level_l[l].initializeCoarseLinks();
-		//level_l[l+1].coasrseLinks = 
+		//level_l[l+1].coarseLinks = 
 		//level l+1 will need 	the coarseLinks to "assemble" its own operator Dc
 	}
 	*/
@@ -359,7 +359,6 @@ void AMG::Pt_D_P(const spinor& v,spinor& out){
 		out[p][2*x+alf] = (m0+2)*v[p][2*x+alf]; //Mass term
 	for(int bet = 0; bet<2; bet++){
 	for(int s = 0; s<AMGV::Ntest; s++){
-
 		//out[test_vec][aggregate]
 		out[p][2*x+alf] -= A_coeff[x][alf][bet][p][s] * v[s][2*x+bet];
 

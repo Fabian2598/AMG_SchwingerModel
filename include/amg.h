@@ -4,6 +4,7 @@
 #include "operator_overloads.h"
 #include "fgmres.h"
 #include "sap.h"
+#include "level.h"
 #include <algorithm>
 #include <random>
 
@@ -83,11 +84,13 @@ public:
 		//c_matrix DcMatrix = c_matrix(AMGV::Ntest*AMGV::Nagg, c_vector(AMGV::Ntest*AMGV::Nagg,0));
 		P_TEMP = spinor(LV::Ntot, c_vector(2,0)); //Temporary spinor for the coarse grid operator
 		Pt_TEMP = spinor(AMGV::Ntest, c_vector(AMGV::Nagg, 0)); //Temporary spinor for the coarse grid operator
-		/*
-		for(int l = 0; l<AMGV::levels; l++){
-			level_l.push_back(AMG_LEVEL(something for level l));
-		}
-		*/
+		
+		
+		//for(int l = 0; l<AMGV::levels; l++){
+		//	AMGlevels.push_back(Level(l,GConf.Conf));
+		//}
+
+		
 	}
 	~AMG() { };
 
@@ -137,6 +140,7 @@ public:
 	*/
 	void initializeCoarseLinks();
 
+
 	/*
 	Coarse grid operator Dc = P^H D P times a spinor
     */
@@ -150,7 +154,7 @@ public:
 	std::vector<spinor> test_vectors; //test vectors[Ntest][Nx Nt][spin components], no color
 	std::vector<spinor> interpolator_columns; 
 	std::vector<spinor> v_chopped;
-	//std::vector<Level> level_l;
+	std::vector<Level> AMGlevels;
 	spinor Pt_TEMP;
 	spinor P_TEMP;
 	
@@ -158,7 +162,8 @@ public:
 	c_double A_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest]; //[A(x)]^{alf,bet}_{p,s} --> A_coeff[x][alf][bet][p][s] 
 	c_double B_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest][2]; //[B_mu(x)]^{alf,bet}_{p,s} --> B_coeff[x][alf][bet][p][s][mu]
 	c_double C_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest][2];//[C_mu(x)]^{alf,bet}_{p,s}  --> C_coeff[x][alf][bet][p][s][mu]
-	
+
+
 };
 
 /*

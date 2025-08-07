@@ -4,7 +4,6 @@
 #include "operator_overloads.h"
 #include "omp.h"
 
-extern c_double I_number; //imaginary number
 
 /*
 	Modulo operation

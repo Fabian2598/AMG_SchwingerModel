@@ -24,7 +24,8 @@ static std::string format(const double& number) {
 
 int main(int argc, char **argv) {
    
-   
+    GaugeConf GConf = GaugeConf(LV::Nx, LV::Nt);
+    GConf.initialize();
     readParameters("../parameters.dat");
     srand(19);
 
@@ -35,7 +36,8 @@ int main(int argc, char **argv) {
     periodic_boundary(); //Builds LeftPB and RightPB (periodic boundary for U_mu(n))
     
     //double m0 = -0.5;
-    double m0 = -0.18840579710144945;
+    mass::m0 = -0.18840579710144945;
+    double m0 = mass::m0; 
 
     //Parameters in variables.cpp
     int rank = 0;
@@ -63,14 +65,20 @@ int main(int argc, char **argv) {
     }
     Aggregates();
 
-    Level Level0(0);
-    Level Level1(1);
+    int level0 = 0;
+    int level1 = 1;
+    Level Level0(level0,GConf.Conf);
+    Level Level1(level1,GConf.Conf);
+
 
     Level0.makeAggregates();
     Level1.makeAggregates();
+
     Level0.makeBlocks();
     Level1.makeBlocks();
+
     Level0.setUp();
+
 
     spinor v(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     spinor vNew(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
@@ -83,10 +91,10 @@ int main(int argc, char **argv) {
     }
 
 
-    GaugeConf GConf = GaugeConf(LV::Nx, LV::Nt);
-    GConf.initialize();
+ 
     AMG testAMG(GConf,m0, 0, 2);
     testAMG.setUpPhase(1,1);
+    testAMG.initializeCoarseLinks();
     testAMG.Pt_v(v,w);
     Level0.Pt_v(v,wNew);
     
@@ -102,7 +110,7 @@ int main(int argc, char **argv) {
     }
 
         std::cout << " ------------------ " << std::endl;
-
+    /*
     Level0.P_v(wNew,vNew);
     testAMG.P_v(w,v);
     for(int i = 0; i<LevelV::Nsites[0]; i++){
@@ -110,7 +118,38 @@ int main(int argc, char **argv) {
         std::cout << "v[" << i << "][" << j << "] " << v[i][j] << "  " << vNew[i][j] << std::endl;
     }
     }
+    */
 
+    //Testing implementation for the two levels case
+    //For generating the coarse gauge links we do 
+    Level0.makeCoarseLinks(Level1); //Generates the coarse gauge links of level 1
+    //Now Level1.D_operator is defined
+    spinor in(LevelV::Ntest[0],c_vector(LevelV::Nagg[0],1));
+    spinor out(LevelV::Ntest[0],c_vector(LevelV::Nagg[0],0));
+    spinor IN(LevelV::Nsites[1],c_vector(LevelV::DOF[1],1));
+    spinor OUT(LevelV::Nsites[1],c_vector(LevelV::DOF[1],0));
+    
+    testAMG.Pt_D_P(in,out);
+    Level1.D_operator(IN,OUT);
+
+    
+    for(int c = 0; c<LevelV::Ntest[0]; c++){
+        for(int a = 0; a<LevelV::Nagg[0]; a++){
+            n = a/2; //Lattice block
+            s = a%2; //spin
+            std::cout << "out[" << c << "][" << a << "] " << out[c][a] << "  " <<  OUT[n][2*c+s] << std::endl;
+        }
+    }
+
+
+
+
+
+    //Level1.makeCoarseLinks(Level2); //Uses the coarse gauge links generated on the previous level to generate 
+    //the coarse gauge links of the next level
+    //Now Level2.D_operator is defined
+    
+    
     
    
     

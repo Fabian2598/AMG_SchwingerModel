@@ -37,6 +37,10 @@ std::vector<std::vector<int>>SAP_Blocks = std::vector<std::vector<int>>(SAPV::sa
 std::vector<int> SAP_RedBlocks = std::vector<int>(SAPV::sap_coloring_blocks, 0); //Red blocks
 std::vector<int> SAP_BlackBlocks = std::vector<int>(SAPV::sap_coloring_blocks, 0); //Black blocks
 
+namespace mass{
+    double m0 = 0; //Default mass
+}
+
 namespace LevelV{
     int BlocksX[AMGV::levels-1];
     int BlocksT[AMGV::levels-1];

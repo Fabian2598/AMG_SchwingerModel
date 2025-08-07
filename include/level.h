@@ -3,13 +3,15 @@
 
 #include "variables.h"
 #include "operator_overloads.h"
+#include <algorithm>
+#include "dirac_operator.h"
 
 /*
     One level of the AMG method
 */
 class Level {
 public:
-    Level(const int& level) : level(level) {
+    Level(const int& level, const c_matrix& U) : level(level), U(U) {
         test_vectors = std::vector<spinor>(Ntest,
         spinor( Nsites, c_vector (DOF,0))); 
 	    interpolator_columns = std::vector<spinor>(Ntest,
@@ -17,22 +19,26 @@ public:
 	    v_chopped = std::vector<spinor>(Ntest,
         spinor( Nsites, c_vector (DOF,0)));  
 
-        x_elements = LevelV::NxSites[level] / LevelV::BlocksX[level]; 
-        t_elements = LevelV::NtSites[level] / LevelV::BlocksT[level]; 
-        sites_per_block = x_elements * t_elements;
+        LatticeBlocks = std::vector<std::vector<int>> (NBlocks, std::vector<int>(sites_per_block,0));
         
         //For level = 0 DOF[level] = 2
         //For level = 1 DOF[level] = 2 * LevelV::Ntest[level-1] = 2 * LevelV::Colors[level]
         Agg = new int[NBlocks * DOF * sites_per_block]; 
-        LatticeBlocks = new int[NBlocks * sites_per_block];
+        //LatticeBlocks = new int[NBlocks * sites_per_block];
         nCoords = new int[Nsites * 2 * colors];
         sCoords = new int[Nsites * 2 * colors];
         cCoords = new int[Nsites * 2 * colors];
+
+
+        //Gauge links to define D_operator (matrix problem at this level)
+        G1 = c_vector(Nsites*2*2*colors*colors,0);
+        G2 = c_vector(Nsites*2*2*colors*colors*2,0);
+        G3 = c_vector(Nsites*2*2*colors*colors*2,0);
+
     };
 
     ~Level() {
         delete[] Agg;
-        delete[] LatticeBlocks;
         delete[] nCoords;
         delete[] sCoords;
         delete[] cCoords;
@@ -42,24 +48,64 @@ public:
     std::vector<spinor> interpolator_columns;
     std::vector<spinor> v_chopped;
 //private:
-    int level; 
-    int x_elements = LevelV::NxSites[level] / LevelV::BlocksX[level], t_elements = LevelV::NtSites[level] / LevelV::BlocksT[level]; //x and t elements of each lattice block
-    int sites_per_block = x_elements * t_elements;
-    int NBlocks = LevelV::NBlocks[level]; //Number of lattice blocks 
-    int colors = LevelV::Colors[level]; //Number of colors at this level
-    int Nsites = LevelV::Nsites[level]; //Number of lattice sites at this level
-    int Ntest = LevelV::Ntest[level]; //Number of test vectors to go to the next level
-    int Nagg = LevelV::Nagg[level]; //Number of aggregates to go to the next level
-    int DOF = LevelV::DOF[level]; //Degrees of freedom at each lattice site at this level
+    const int level; 
+    const int x_elements = LevelV::NxSites[level] / LevelV::BlocksX[level], t_elements = LevelV::NtSites[level] / LevelV::BlocksT[level]; //x and t elements of each lattice block
+    const int sites_per_block = x_elements * t_elements;
+    const int NBlocks = LevelV::NBlocks[level]; //Number of lattice blocks 
+    const int colors = LevelV::Colors[level]; //Number of colors at this level
+    const int Nsites = LevelV::Nsites[level]; //Number of lattice sites at this level
+    const int Ntest = LevelV::Ntest[level]; //Number of test vectors to go to the next level
+    const int Nagg = LevelV::Nagg[level]; //Number of aggregates to go to the next level
+    const int DOF = LevelV::DOF[level]; //Degrees of freedom at each lattice site at this level
+    const c_matrix U; //gauge configuration
 
-    
-    //Coarse gauge links --> Used to assemble the operator for the level l+1
-	c_double A_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest];    //[A(x)]^{alf,bet}_{p,s} --> A_coeff[x][alf][bet][p][s] 
-	c_double B_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest][2]; //[B_mu(x)]^{alf,bet}_{p,s} --> B_coeff[x][alf][bet][p][s][mu]
-	c_double C_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest][2]; //[C_mu(x)]^{alf,bet}_{p,s}  --> C_coeff[x][alf][bet][p][s][mu]
-    //Level next_level;
+    //At level = 0 these vectors represent the gauge links.
+    //At level > 1 they are the coarse gauge links generated in the previous level
+    c_vector G1; 
+    c_vector G2; 
+    c_vector G3; 
 
-
+    //Index functions for gauge links. These correspond to the current level
+	//get index for A_coeff 1D array
+    //[A(x)]^{alf,bet}_{c,b} --> A_coeff[x][alf][bet][c][b]
+	inline int getG1index(const int& x, const int& alf, const int& bet, const int& c, const int& b){
+		return x * 2 * 2 * colors * colors 
+        + alf * 2 * colors * colors 
+        + bet * colors * colors
+        + c * colors 
+        + b;
+	}
+	//[B_mu(x)]^{alf,bet}_{c,b}  --> B_coeff[x][alf][bet][c][b][mu]
+    //[C_mu(x)]^{alf,bet}_{c,b}  --> C_coeff[x][alf][bet][c][b][mu]
+	inline int getG2G3index(const int& x, const int& alf, const int& bet, const int& c, const int& b, const int& mu){
+        return x * 2 * 2 * colors * colors * 2 
+        + alf * 2 * colors * colors * 2 
+        + bet * colors * colors * 2
+        + c * colors * 2 
+        + b * 2 
+        + mu;
+    }
+    	
+    //Index functions for coarse gauge links. These correspond to the next level, but are generated here (not stored)
+	//get index for A_coeff 1D array
+    //[A(x)]^{alf,bet}_{c,b} --> A_coeff[x][alf][bet][c][b]
+	inline int getAindex(const int& block, const int& alf, const int& bet, const int& c, const int& b){
+		return block * 2 * 2 * Ntest * Ntest 
+        + alf * 2 * Ntest * Ntest 
+        + bet * Ntest * Ntest
+        + c * Ntest 
+        + b;
+	}
+	//[B_mu(x)]^{alf,bet}_{c,b}  --> B_coeff[x][alf][bet][c][b][mu]
+    //[C_mu(x)]^{alf,bet}_{c,b}  --> C_coeff[x][alf][bet][c][b][mu]
+	inline int getBCindex(const int& block, const int& alf, const int& bet, const int& c, const int& b, const int& mu){
+        return block * 2 * 2 * Ntest * Ntest * 2 
+        + alf * 2 * Ntest * Ntest * 2 
+        + bet * Ntest * Ntest * 2
+        + c * Ntest * 2 
+        + b * 2 
+        + mu;
+    }
 
     /*
     For level = 0
@@ -72,13 +118,14 @@ public:
     For the coarsest level we don't need need any aggregation
     */
     int* Agg;
-    /*
-    Explain this
-    */
+
     int* nCoords; int* sCoords; int* cCoords;
+    
+    std::vector<std::vector<int>> LatticeBlocks;
+
     //LatticeBlocks[i][j] is accessed as LatticeBlocks[i * sites_per_block + j]
     //i runs from 0 to NBlocks - 1, j runs from 0 to sites_per_block - 1 
-    int *LatticeBlocks; 
+    //int *LatticeBlocks; 
 
     void makeAggregates();
     void printAggregates();
@@ -86,10 +133,19 @@ public:
     void makeBlocks();
     void printBlocks();
 
+    void makeCoarseLinks(Level& next_level);//& A_coeff,c_vector& B_coeff, c_vector& C_coeff);
+
     void setUp(); //This is just for testing
 
 
-    //---The coarsest level does not need these operators---//
+    /*
+    Matrix-vector operation that defines the level l.
+    For instance, at level = 0, D_operator is just the Dirac operator
+    at level = 1 D_operator is Dc
+    at level = 2 D_operator is (Dc)_c ...
+    */
+    void D_operator(const spinor& v, spinor& out);
+    
     /*
 	Prolongation operator times a spinor x = P v
 	x_i = P_ij v_j. dim(P) = DOF Nsites x Ntest Nagg, 
@@ -104,8 +160,7 @@ public:
     */
     void Pt_v(const spinor& v,spinor& out);
 
-    //void D_operator(const spinor& v,spinor& out); //--> This operator has to be constructed with the gauge links from the 
-    //previous level
+
 
     
 };

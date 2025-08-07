@@ -1,7 +1,5 @@
 #include "dirac_operator.h"
 
-c_double I_number(0, 1); //imaginary number
-
 void D_phi(const c_matrix& U, const spinor& phi, spinor &out,const double& m0) {
 	using namespace LV;
 	for (int n = 0; n < Ntot; n++) {
