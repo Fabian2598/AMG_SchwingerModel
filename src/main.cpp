@@ -7,9 +7,11 @@
 #include "params.h"
 #include "bi_cgstab.h"
 #include "conjugate_gradient.h"
+#include "boundary.h"
 #include "amg.h"
 #include "level.h"
 #include "mpi.h"
+
 
 
 //Formats decimal numbers
@@ -34,7 +36,8 @@ int main(int argc, char **argv) {
     Coordinates(); //Builds array with coordinates of the lattice points x * Nt + t
     MakeBlocks(); //Makes lattice blocks 
     periodic_boundary(); //Builds LeftPB and RightPB (periodic boundary for U_mu(n))
-    
+    boundary();
+
     //double m0 = -0.5;
     mass::m0 = -0.18840579710144945;
     double m0 = mass::m0; 
@@ -77,78 +80,30 @@ int main(int argc, char **argv) {
     Level0.makeBlocks();
     Level1.makeBlocks();
 
-    Level0.setUp();
+    Level0.makeDirac(); //Builds Dirac operator at level = l
 
+    
+    spinor v(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
+    for(int n = 0; n < LevelV::Nsites[0]; n++){
+        v[n][0] = RandomU1(); v[n][1] = RandomU1();
+    }
+    spinor out(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
+    spinor outv2(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
+    D_phi(GConf.Conf,v,out,mass::m0);
+    Level0.D_operator(v,outv2);
 
-    spinor v(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    spinor vNew(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    spinor w(LevelV::Ntest[0],c_vector(LevelV::Nagg[0],0));
-    spinor wNew(LevelV::Nsites[1],c_vector(LevelV::DOF[1],0));
-    for(int i = 0; i<LevelV::Nsites[0]; i++){
-    for(int j = 0; j<LevelV::DOF[0]; j++){
-        v[i][j] = RandomU1();
+    for(int n = 0; n < LevelV::Nsites[0]; n++){
+    for(int mu : {0,1}){
+        if (std::abs(out[n][mu]-outv2[n][mu]) > 1e-8 ){
+            std::cout << "[" << n << "][" << mu << "] " << "is different" << std::endl; 
+            std::cout << out[n][mu] << "   /=    " << outv2[n][mu] << std::endl;
+            return 1;
+        }
+        std::cout << out[n][mu] << "   =    " << outv2[n][mu] << std::endl;
     }
     }
-
-
  
-    AMG testAMG(GConf,m0, 0, 2);
-    testAMG.setUpPhase(1,1);
-    testAMG.initializeCoarseLinks();
-    testAMG.Pt_v(v,w);
-    Level0.Pt_v(v,wNew);
-    
-    int a, c, n, s;
-    for(int c = 0; c<LevelV::Ntest[0]; c++){
-        for(int a = 0; a<LevelV::Nagg[0]; a++){
-            n = a/2; //Lattice block
-            s = a%2; //spin
-            std::cout << "w[" << c << "][" << a << "] " << w[c][a] << "  " <<  wNew[n][2*c+s] << std::endl;
-            w[c][a] = RandomU1();
-            wNew[n][2*c+s] = w[c][a];
-        }
-    }
 
-        std::cout << " ------------------ " << std::endl;
-    /*
-    Level0.P_v(wNew,vNew);
-    testAMG.P_v(w,v);
-    for(int i = 0; i<LevelV::Nsites[0]; i++){
-    for(int j = 0; j<LevelV::DOF[0]; j++){
-        std::cout << "v[" << i << "][" << j << "] " << v[i][j] << "  " << vNew[i][j] << std::endl;
-    }
-    }
-    */
-
-    //Testing implementation for the two levels case
-    //For generating the coarse gauge links we do 
-    Level0.makeCoarseLinks(Level1); //Generates the coarse gauge links of level 1
-    //Now Level1.D_operator is defined
-    spinor in(LevelV::Ntest[0],c_vector(LevelV::Nagg[0],1));
-    spinor out(LevelV::Ntest[0],c_vector(LevelV::Nagg[0],0));
-    spinor IN(LevelV::Nsites[1],c_vector(LevelV::DOF[1],1));
-    spinor OUT(LevelV::Nsites[1],c_vector(LevelV::DOF[1],0));
-    
-    testAMG.Pt_D_P(in,out);
-    Level1.D_operator(IN,OUT);
-
-    
-    for(int c = 0; c<LevelV::Ntest[0]; c++){
-        for(int a = 0; a<LevelV::Nagg[0]; a++){
-            n = a/2; //Lattice block
-            s = a%2; //spin
-            std::cout << "out[" << c << "][" << a << "] " << out[c][a] << "  " <<  OUT[n][2*c+s] << std::endl;
-        }
-    }
-
-
-
-
-
-    //Level1.makeCoarseLinks(Level2); //Uses the coarse gauge links generated on the previous level to generate 
-    //the coarse gauge links of the next level
-    //Now Level2.D_operator is defined
-    
     
     
    

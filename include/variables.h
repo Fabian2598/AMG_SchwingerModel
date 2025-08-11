@@ -142,4 +142,14 @@ void MakeBlocks();
 void CheckBlocks(); //Check that Nx/block_x and Nt/block_t are integers, the same for Schwarz blocks
 void CheckAggregates(); //Check that the aggregates are initialized and have the correct size
 
+
+/*
+For the boundary conditions
+*/
+
+extern std::vector<std::vector<std::vector<int>>>RightPB_l; //Right periodic boundary
+extern std::vector<std::vector<std::vector<int>>>LeftPB_l; //Left periodic boundary
+extern std::vector<std::vector<std::vector<c_double>>>SignR_l; //Right fermionic boundary
+extern std::vector<std::vector<std::vector<c_double>>>SignL_l; //Left fermionic boundary
+
 #endif 

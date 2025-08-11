@@ -35,6 +35,10 @@ public:
         G2 = c_vector(Nsites*2*2*colors*colors*2,0);
         G3 = c_vector(Nsites*2*2*colors*colors*2,0);
 
+        if (level == 0)
+            makeDirac();
+        
+
     };
 
     ~Level() {
@@ -133,6 +137,10 @@ public:
     void makeBlocks();
     void printBlocks();
 
+    //Creates G1, G2 and G3 for level = 0
+    void makeDirac();
+
+    //Make coarse gauge links. They will be used in the next level as G1, G2 and G3.
     void makeCoarseLinks(Level& next_level);//& A_coeff,c_vector& B_coeff, c_vector& C_coeff);
 
     void setUp(); //This is just for testing

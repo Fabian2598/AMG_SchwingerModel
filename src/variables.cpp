@@ -27,7 +27,6 @@ std::vector<std::vector<int>>LeftPB = std::vector<std::vector<int>>(LV::Ntot, st
 std::vector<std::vector<int>>RightPB = std::vector<std::vector<int>>(LV::Ntot, std::vector<int>(2,0)); //RightPB[x][t][mu]
 
 
-
 std::vector<std::vector<c_double>>SignL =std::vector<std::vector<c_double>>(LV::Ntot, std::vector<c_double>(2,0)); //SignL[x][t][mu]
 std::vector<std::vector<c_double>>SignR = std::vector<std::vector<c_double>>(LV::Ntot, std::vector<c_double>(2,0)); ////SignR[x][t][mu]
 
@@ -167,3 +166,13 @@ void MakeBlocks(){
 	}
 }
 
+
+   std::vector<std::vector<std::vector<int>>> RightPB_l = std::vector<std::vector<std::vector<int>>>
+    (LEVELS,std::vector<std::vector<int>>(LV::Ntot,std::vector<int>(2,0)) );
+	std::vector<std::vector<int>>hat_mu(2, std::vector<int>(2, 0));
+   std::vector<std::vector<std::vector<int>>> LeftPB_l = std::vector<std::vector<std::vector<int>>>
+    (LEVELS,std::vector<std::vector<int>>(LV::Ntot,std::vector<int>(2,0)) );
+   std::vector<std::vector<std::vector<c_double>>> SignR_l = std::vector<std::vector<std::vector<c_double>>>
+    (LEVELS,std::vector<std::vector<c_double>>(LV::Ntot,std::vector<c_double>(2,0)) );
+   std::vector<std::vector<std::vector<c_double>>> SignL_l = std::vector<std::vector<std::vector<c_double>>>
+    (LEVELS,std::vector<std::vector<c_double>>(LV::Ntot,std::vector<c_double>(2,0)) );
