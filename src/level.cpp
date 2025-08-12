@@ -332,6 +332,8 @@ void Level::makeCoarseLinks(Level& next_level){
 
 	
 	//Here instead of using the gauge links I have to write everything in terms of the G's
+	//p and s are the coarse colors
+	//c and b are the colors at the current level
 	for(int x=0; x<NBlocks; x++){
 	for(int alf=0; alf<2;alf++){
 	for(int bet=0; bet<2;bet++){
@@ -341,9 +343,30 @@ void Level::makeCoarseLinks(Level& next_level){
 		B_coeff[getBCindex(x,alf,bet,p,s,0)] = 0; B_coeff[getBCindex(x,alf,bet,p,s,1)] = 0;
 		C_coeff[getBCindex(x,alf,bet,p,s,0)] = 0; C_coeff[getBCindex(x,alf,bet,p,s,1)] = 0;
 		for(int n : LatticeBlocks[x]){
-		for(int mu : {0,1}){
-			Lm = std::conj(w[p][n][alf]) * G2[getG2G3index(x,alf,bet,p,s,mu)];
-			Lp = std::conj(w[p][n][alf]) * G2[getG2G3index(x,alf,bet,p,s,mu)];
+			for(int c = 0; c<colors; c++){
+			for(int b = 0; b<colors; b++){
+				//[w*_p^(block,alf)]_{c,alf}(x) [A(x)]^{alf,bet}_{c,b} [w_s^{block,bet}]_{b,bet}(x)
+				A_coeff[getAindex(x,alf,bet,p,s)] = std::conj(w[p][n][2*c+alf]) * G1[getG1index(x,alf,bet,c,b)] * std::conj(w[s][n][2*b+bet]);
+			for(int mu : {0,1}){
+				Lp = std::conj(w[p][n][2*c+alf]) * G2[getG2G3index(x,alf,bet,c,b,mu)]; 
+				Lm = std::conj(w[p][n][2*c+alf]) * G3[getG2G3index(x,alf,bet,c,b,mu)];
+				//Here I have to start putting the "ifs" to prevent w from being zero when it has to ...
+				A_coeff[getAindex(x,alf,bet,p,s)] -=  (Lp * w[s][RightPB_l[level][n][mu]][2*c+alf]
+				+ Lm * w[s][LeftPB_l[level][n][mu]][2*c+alf]);
+				B_coeff[getAindex(x,alf,bet,p,s)] -= /////FINISH THIS 12/08/25 16:40
+
+
+				
+				
+				
+			}
+			
+			}	
+			}
+			
+
+
+
 			//           [A(x)]^{alf,bet}_{p,s} --> A_coeff[x][alf][bet][p][s] 
 			//--------------- 1 - sigma_mu---------------//
 			R = 0.0;
