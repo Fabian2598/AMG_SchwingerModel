@@ -61,6 +61,8 @@ public:
     const int Ntest = LevelV::Ntest[level]; //Number of test vectors to go to the next level
     const int Nagg = LevelV::Nagg[level]; //Number of aggregates to go to the next level
     const int DOF = LevelV::DOF[level]; //Degrees of freedom at each lattice site at this level
+    int Ntsites = LevelV::NtSites[level]; //Number of time sites at this level
+    int Nxsites = LevelV::NxSites[level]; //Number of space sites at this level
     const c_matrix U; //gauge configuration
 
     //At level = 0 these vectors represent the gauge links.
@@ -168,10 +170,21 @@ public:
     */
     void Pt_v(const spinor& v,spinor& out);
 
+    inline void getLatticeBlock(const int& n, int &m, int &block) {
+        int x = n / Ntsites; //x coordinate of the lattice point 
+        int t = n % Ntsites; //t coordinate of the lattice point
+        //Reconstructing the block and m index from x and t
+        int block_x = x / x_elements; //Block index in the x direction
+        int block_t = t / t_elements; //Block index in the t direction
+        block = block_x * LevelV::BlocksT[level] + block_t; //Block index in the SAP method
 
-
-    
+        int mx = x % x_elements; //x coordinate in the block
+        int mt = t % t_elements; //t coordinate in the block
+        m = mx * t_elements + mt; //Index in the block
+    }
 };
+
+
 
 
 #endif

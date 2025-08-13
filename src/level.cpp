@@ -104,7 +104,6 @@ void Level::makeDirac(){
 	M[1][1][0] = -I_number; M[1][1][1] = 1.0; 
 
 
-	//Here instead of using the gauge links I have to write everything in terms of the G's
 	for(int x=0; x<Nsites; x++){
 	for(int alf=0; alf<2;alf++){
 	for(int bet=0; bet<2;bet++){
@@ -113,10 +112,12 @@ void Level::makeDirac(){
 		G1[getG1index(x,alf,bet,c,b)] = 0;
 		G2[getG2G3index(x,alf,bet,c,b,0)] = 0; G2[getG2G3index(x,alf,bet,c,b,1)] = 0;
 		G3[getG2G3index(x,alf,bet,c,b,0)] = 0; G3[getG2G3index(x,alf,bet,c,b,1)] = 0;
+		//For level = 0 
 		for(int mu : {0,1}){
 			G2[getG2G3index(x,alf,bet,c,b,mu)] = 0.5 * M[mu][alf][bet] * U[x][mu] * SignR_l[level][x][mu];
 			G3[getG2G3index(x,alf,bet,c,b,mu)] = 0.5 * P[mu][alf][bet] * std::conj(U[LeftPB_l[level][x][mu]][mu]) * SignL_l[level][x][mu];
 		}
+		//For level = 1 I can call the previous A,B, C ...
 	}
 	}
 	}
@@ -322,15 +323,16 @@ void Level::makeCoarseLinks(Level& next_level){
 
 	//Make gauge links for level
 	std::vector<spinor> &w = interpolator_columns;
-	c_double Lm, Lp, R;
+	c_double wG2, wG3, R;
 	c_vector &A_coeff = next_level.G1; 
 	c_vector &B_coeff = next_level.G2;
 	c_vector &C_coeff = next_level.G3;
 	std::cout << "A size " << A_coeff.size() << std::endl;
 	std::cout << "B size " << B_coeff.size() << std::endl;
 	std::cout << "C size " << C_coeff.size() << std::endl;
-
-	
+	int indxA; int indxBC[2]; //Indices for A, B and C coefficients
+	int block_r, n_in_block_r;
+	int block_l, n_in_block_l;
 	//Here instead of using the gauge links I have to write everything in terms of the G's
 	//p and s are the coarse colors
 	//c and b are the colors at the current level
@@ -339,70 +341,43 @@ void Level::makeCoarseLinks(Level& next_level){
 	for(int bet=0; bet<2;bet++){
 	for(int p = 0; p<Ntest; p++){
 	for(int s = 0; s<Ntest; s++){
-		A_coeff[getAindex(x,alf,bet,p,s)] = 0;
-		B_coeff[getBCindex(x,alf,bet,p,s,0)] = 0; B_coeff[getBCindex(x,alf,bet,p,s,1)] = 0;
-		C_coeff[getBCindex(x,alf,bet,p,s,0)] = 0; C_coeff[getBCindex(x,alf,bet,p,s,1)] = 0;
+		indxA = getAindex(x,alf,bet,p,s);
+		indxBC[0] = getBCindex(x,alf,bet,p,s,0);
+		indxBC[1] = getBCindex(x,alf,bet,p,s,1);
+		A_coeff[indxA] = 0;
+		B_coeff[indxBC[0]] = 0; B_coeff[indxBC[1]] = 0;
+		C_coeff[indxBC[0]] = 0; C_coeff[indxBC[1]] = 0;
 		for(int n : LatticeBlocks[x]){
 			for(int c = 0; c<colors; c++){
 			for(int b = 0; b<colors; b++){
+
 				//[w*_p^(block,alf)]_{c,alf}(x) [A(x)]^{alf,bet}_{c,b} [w_s^{block,bet}]_{b,bet}(x)
-				A_coeff[getAindex(x,alf,bet,p,s)] = std::conj(w[p][n][2*c+alf]) * G1[getG1index(x,alf,bet,c,b)] * std::conj(w[s][n][2*b+bet]);
+				A_coeff[indxA] = std::conj(w[p][n][2*c+alf]) * G1[getG1index(x,alf,bet,c,b)] * std::conj(w[s][n][2*b+bet]);
 			for(int mu : {0,1}){
-				Lp = std::conj(w[p][n][2*c+alf]) * G2[getG2G3index(x,alf,bet,c,b,mu)]; 
-				Lm = std::conj(w[p][n][2*c+alf]) * G3[getG2G3index(x,alf,bet,c,b,mu)];
+				wG2 = std::conj(w[p][n][2*c+alf]) * G2[getG2G3index(x,alf,bet,c,b,mu)]; 
+				wG3 = std::conj(w[p][n][2*c+alf]) * G3[getG2G3index(x,alf,bet,c,b,mu)];
 				//Here I have to start putting the "ifs" to prevent w from being zero when it has to ...
-				A_coeff[getAindex(x,alf,bet,p,s)] -=  (Lp * w[s][RightPB_l[level][n][mu]][2*c+alf]
-				+ Lm * w[s][LeftPB_l[level][n][mu]][2*c+alf]);
-				B_coeff[getAindex(x,alf,bet,p,s)] -= /////FINISH THIS 12/08/25 16:40
+				
+				getLatticeBlock(RightPB_l[level][n][mu], n_in_block_r, block_r);
+				getLatticeBlock(LeftPB_l[level][n][mu], n_in_block_l, block_l);
 
-
-				
-				
-				
+				//Only diff from zero when n+hat{mu} in Block(x)
+				if (block_r == x)
+					A_coeff[indxA] -= wG2 * w[s][RightPB_l[level][n][mu]][2*c+alf];
+				//Only diff from zero when n-hat{mu} in Block(x)
+				if (block_l == x)
+					A_coeff[indxA] -= wG3 * w[s][LeftPB_l[level][n][mu]][2*c+alf];
+				//Only diff from zero when n+hat{mu} in Block(x+hat{mu})
+				if (block_r == RightPB_blocks[x][mu])
+					B_coeff[indxBC[mu]] -= wG2 * w[s][RightPB_l[level][n][mu]][2*c+alf]; 
+				//Only diff from zero when n-hat{mu} in Block(x-hat{mu})
+				if (block_l == LeftPB_blocks[x][mu])
+					C_coeff[indxBC[mu]] -= wG3 * w[s][LeftPB_l[level][n][mu]][2*c+alf]; 
+	
 			}
-			
 			}	
 			}
-			
-
-
-
-			//           [A(x)]^{alf,bet}_{p,s} --> A_coeff[x][alf][bet][p][s] 
-			//--------------- 1 - sigma_mu---------------//
-			R = 0.0;
-			//if n+\hat{mu} in Block(x)
-			if (std::find(LatticeBlocks[x].begin(), LatticeBlocks[x].end(), RightPB_l[level][n][mu]) != LatticeBlocks[x].end()){
-				R = w[s][RightPB[n][mu]][bet] * SignR[n][mu];
-			}
-			A_coeff[getAindex(x,alf,bet,p,s)] += Lm * R;
-			//-------------- 1 + sigma_mu --------------//
-			R = 0.0;
-			//if n-\hat{mu} in Block(x)
-			if (std::find(LatticeBlocks[x].begin(), LatticeBlocks[x].end(), LeftPB[n][mu]) != LatticeBlocks[x].end()){
-				R = w[s][LeftPB[n][mu]][bet] * SignL[n][mu];
-			}
-			A_coeff[getAindex(x,alf,bet,p,s)] += Lp * R;
-
-			//			[B_mu(x)]^{alf,bet}_{p,s} --> B_coeff[x][alf][bet][p][s][mu]
-			R = 0.0;
-			//if n+\hat{mu} in Block(x+hat{mu})
-			if (std::find(LatticeBlocks[RightPB_blocks[x][mu]].begin(), LatticeBlocks[RightPB_blocks[x][mu]].end(), RightPB[n][mu]) != LatticeBlocks[RightPB_blocks[x][mu]].end()){
-				R = w[s][RightPB[n][mu]][bet] * SignR[n][mu];
-			}
-			B_coeff[getBCindex(x,alf,bet,p,s,mu)] += Lm * R;
-			
-			//			[C_mu(x)]^{alf,bet}_{p,s} --> C_coeff[x][alf][bet][p][s][mu]
-			R = 0.0;
-			//if n-\hat{mu} in Block(x-hat{mu})
-			if (std::find(LatticeBlocks[LeftPB_blocks[x][mu]].begin(), LatticeBlocks[LeftPB_blocks[x][mu]].end(), LeftPB[n][mu]) != LatticeBlocks[LeftPB_blocks[x][mu]].end()){
-				R = w[s][LeftPB[n][mu]][bet] * SignL[n][mu];
-			}
-			C_coeff[getBCindex(x,alf,bet,p,s,mu)] += Lp * R;
-
-		}//mu 
-		}//n 
-
-
+		}
 	//---------Close loops---------//
 	} //s
 	} //p
