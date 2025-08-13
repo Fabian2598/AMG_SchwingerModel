@@ -154,12 +154,11 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 		}
 	}
 	*/
-
+	//level_l[0].makeDirac(); //Build Dirac operator for the finest level
 	//Improving the test vectors by approximately solving the linear system D test_vectors[i] = rhs 
 	/*
 	for(int l=0; l<AMGV::levels-1; l++){
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
-	
 			//Right hand side of the linear system 
 			//rhs = test_vectors[i];  
 			//rhs(LV::Ntot, c_vector(2, 0));
@@ -174,9 +173,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 		//Build the interpolator between level l and l+1
 		level_l[l].interpolator_columns = test_vectors; 
 		level_l[l].orthonormalize(); 
-		level_l[l].initializeCoarseLinks();
-		//level_l[l+1].coarseLinks = 
-		//level l+1 will need 	the coarseLinks to "assemble" its own operator Dc
+		level_l[l].makeCoarseLinks(); //Make coarse gauge links which define the operator D for the next level
 	}
 	*/
 

@@ -139,8 +139,8 @@ public:
     void makeBlocks();
     void printBlocks();
 
-    //Creates G1, G2 and G3 for level = 0
-    void makeDirac();
+    //Creates G1, G2 and G3
+    void makeDirac(const Level& previous_level);
 
     //Make coarse gauge links. They will be used in the next level as G1, G2 and G3.
     void makeCoarseLinks(Level& next_level);//& A_coeff,c_vector& B_coeff, c_vector& C_coeff);

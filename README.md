@@ -8,8 +8,9 @@ Work in progress ...
 - [ ] Implement coarse gauge fields
     - [x] Test implementation for the two-level case
     - [x] Implement boundary conditions for all the levels
-    - [ ] Implement Level::makeCoarseLinks(Level& next_level) in the general scenario, without calling the $U_\mu$ variables.
-- [ ] Implement coarse grid matrix 
+    - [x] Implement Level::makeCoarseLinks(Level& next_level) in the general scenario, without calling the $U_\mu$ variables.
+    - [] Test the implementation for several levels
+- [x] Implement coarse grid matrix 
 - [ ] Implement SAP for each level
 - [ ] Integrate everything in a V-cycle
 - [ ] Improve performance (if needed)
