@@ -94,7 +94,6 @@ void AMG::orthonormalize(){
 						v_chopped[nt*Nagg+i][n][alf] = v_chopped[nt*Nagg+i][n][alf] - proj * v_chopped[j*Nagg+i][n][alf];
 					}
 				}
-				
 			}
 			normalize(v_chopped[nt*Nagg+i]);
 		}
@@ -125,14 +124,19 @@ void AMG::orthonormalize(){
 }; 
 
 void AMG::setUpPhase(const double& eps,const int& Nit) {
+	int Nsites = LevelV::Nsites[0];
+	int DOF = LevelV::DOF[0];
+	int Ntest = LevelV::Ntest[0];
+	srand(19); //restarting seed 
 	for (int i = 0; i < LevelV::Ntest[0]; i++) {
 		for (int n = 0; n < LevelV::Nsites[0]; n++) {
 			for (int dof = 0; dof < LevelV::DOF[0]; dof++) {
-				test_vectors[i][n][dof] = 1;//i*LevelV::Nsites[0]*LevelV::DOF[0] + n*LevelV::DOF[0] + dof;
+				test_vectors[i][n][dof] = RandomU1();
 			}
 		}
 	}
 	interpolator_columns = test_vectors; 
+	orthonormalize();
 	
 	//Call MPI for SAP parallelization
 	/*

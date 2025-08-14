@@ -5,6 +5,7 @@
 #include "operator_overloads.h"
 #include <algorithm>
 #include "dirac_operator.h"
+#include "gauge_conf.h"
 
 /*
     One level of the AMG method
@@ -16,10 +17,10 @@ public:
         spinor( Nsites, c_vector (DOF,0))); 
 	    interpolator_columns = std::vector<spinor>(Ntest,
         spinor( Nsites, c_vector (DOF,0))); 
-	    v_chopped = std::vector<spinor>(Ntest,
-        spinor( Nsites, c_vector (DOF,0)));  
-
+	    
         LatticeBlocks = std::vector<std::vector<int>> (NBlocks, std::vector<int>(sites_per_block,0));
+
+        v_chopped = std::vector<spinor>(Ntest*Nagg, spinor(Nsites, c_vector(DOF,0))); //For orthonormalization
         
         //For level = 0 DOF[level] = 2
         //For level = 1 DOF[level] = 2 * LevelV::Ntest[level-1] = 2 * LevelV::Colors[level]
@@ -58,19 +59,18 @@ public:
 
     std::vector<spinor> test_vectors; //[Ntest][Nsites][degrees of freedom per site]
     std::vector<spinor> interpolator_columns;
-    std::vector<spinor> v_chopped;
 //private:
     const int level; 
     const int x_elements = LevelV::NxSites[level] / LevelV::BlocksX[level], t_elements = LevelV::NtSites[level] / LevelV::BlocksT[level]; //x and t elements of each lattice block
     const int sites_per_block = x_elements * t_elements;
     const int NBlocks = LevelV::NBlocks[level]; //Number of lattice blocks 
-    const int colors = LevelV::Colors[level]; //Number of colors at this level
-    const int Nsites = LevelV::Nsites[level]; //Number of lattice sites at this level
-    const int Ntest = LevelV::Ntest[level]; //Number of test vectors to go to the next level
-    const int Nagg = LevelV::Nagg[level]; //Number of aggregates to go to the next level
-    const int DOF = LevelV::DOF[level]; //Degrees of freedom at each lattice site at this level
-    int Ntsites = LevelV::NtSites[level]; //Number of time sites at this level
-    int Nxsites = LevelV::NxSites[level]; //Number of space sites at this level
+    const int colors = LevelV::Colors[level];   //Number of colors at this level
+    const int Nsites = LevelV::Nsites[level];   //Number of lattice sites at this level
+    const int Ntest = LevelV::Ntest[level];     //Number of test vectors to go to the next level
+    const int Nagg = LevelV::Nagg[level];       //Number of aggregates to go to the next level
+    const int DOF = LevelV::DOF[level];         //Degrees of freedom at each lattice site at this level
+    int Ntsites = LevelV::NtSites[level];       //Number of time sites at this level
+    int Nxsites = LevelV::NxSites[level];       //Number of space sites at this level
     const c_matrix U; //gauge configuration
 
     //At level = 0 these vectors represent the gauge links.
@@ -154,6 +154,9 @@ public:
     void makeCoarseLinks(Level& next_level);//& A_coeff,c_vector& B_coeff, c_vector& C_coeff);
 
     void setUp(); //This is just for testing
+
+    void orthonormalize(); //Local orthonormalization of the test vectors
+    std::vector<spinor> v_chopped;
 
 
     /*
