@@ -266,7 +266,6 @@ void AMG::Pt_v(const spinor& v,spinor& out) {
 	Intialize the coarse gauge links for Dc
 */
 void AMG::initializeCoarseLinks(){
-	//This function consumes most of the time
 	c_double P[2][2][2], M[2][2][2]; 
 	
 	P[0][0][0] = 1.0; P[0][0][1] = 1.0;
@@ -284,7 +283,7 @@ void AMG::initializeCoarseLinks(){
 	c_matrix &U = GConf.Conf;
 	std::vector<spinor> &w = interpolator_columns;
 	c_double Lm, Lp, R;
-
+	int block_r, block_l;
 	for(int x=0; x<LV::Nblocks; x++){
 	for(int alf=0; alf<2;alf++){
 	for(int bet=0; bet<2;bet++){
@@ -296,40 +295,27 @@ void AMG::initializeCoarseLinks(){
 		C_coeff[x][alf][bet][p][s][0] = 0; C_coeff[x][alf][bet][p][s][1] = 0;
 		for(int n : LatticeBlocks[x]){
 		for(int mu : {0,1}){
+			getLatticeBlock(RightPB[n][mu], block_r); //Get the block index for the right periodic boundary
+			getLatticeBlock(LeftPB[n][mu], block_l); //Get the block index for the right periodic boundary
+
 			Lm = 0.5 * M[mu][alf][bet] * std::conj(w[p][n][alf]) * U[n][mu];
-			Lp = 0.5 * P[mu][alf][bet] * std::conj(w[p][n][alf]) * std::conj(U[LeftPB[n][mu]][mu]);
-			//           [A(x)]^{alf,bet}_{p,s} --> A_coeff[x][alf][bet][p][s] 
-			//--------------- 1 - sigma_mu---------------//
-			R = 0.0;
+			Lp = 0.5 * P[mu][alf][bet] * std::conj(w[p][n][alf]) * std::conj(U[LeftPB[n][mu]][mu]);	
+			//std::cout << "Lm : " << Lm <<  std::endl;
 			//if n+\hat{mu} in Block(x)
-			if (std::find(LatticeBlocks[x].begin(), LatticeBlocks[x].end(), RightPB[n][mu]) != LatticeBlocks[x].end()){
-				R = w[s][RightPB[n][mu]][bet] * SignR[n][mu];
-			}
-			A_coeff[x][alf][bet][p][s] += Lm * R;
-			//-------------- 1 + sigma_mu --------------//
-			R = 0.0;
-			//if n-\hat{mu} in Block(x)
-			if (std::find(LatticeBlocks[x].begin(), LatticeBlocks[x].end(), LeftPB[n][mu]) != LatticeBlocks[x].end()){
-				R = w[s][LeftPB[n][mu]][bet] * SignL[n][mu];
-			}
-			A_coeff[x][alf][bet][p][s] += Lp * R;
-
-			//			[B_mu(x)]^{alf,bet}_{p,s} --> B_coeff[x][alf][bet][p][s][mu]
-			R = 0.0;
+			if (block_r == x)
+				//[A(x)]^{alf,bet}_{p,s} --> A_coeff[x][alf][bet][p][s] 
+				A_coeff[x][alf][bet][p][s] += Lm * w[s][RightPB[n][mu]][bet] * SignR[n][mu];
 			//if n+\hat{mu} in Block(x+hat{mu})
-			if (std::find(LatticeBlocks[RightPB_blocks[x][mu]].begin(), LatticeBlocks[RightPB_blocks[x][mu]].end(), RightPB[n][mu]) != LatticeBlocks[RightPB_blocks[x][mu]].end()){
-				R = w[s][RightPB[n][mu]][bet] * SignR[n][mu];
-			}
-			B_coeff[x][alf][bet][p][s][mu] += Lm * R;
-			
-			//			[C_mu(x)]^{alf,bet}_{p,s} --> C_coeff[x][alf][bet][p][s][mu]
-			R = 0.0;
+			else if (block_r == RightPB_blocks[x][mu])
+				//[B_mu(x)]^{alf,bet}_{p,s} --> B_coeff[x][alf][bet][p][s][mu]
+				B_coeff[x][alf][bet][p][s][mu] += Lm * w[s][RightPB[n][mu]][bet] * SignR[n][mu];
+			//if n-\hat{mu} in Block(x)	
+			if (block_l == x)
+				A_coeff[x][alf][bet][p][s] += Lp * w[s][LeftPB[n][mu]][bet] * SignL[n][mu];
 			//if n-\hat{mu} in Block(x-hat{mu})
-			if (std::find(LatticeBlocks[LeftPB_blocks[x][mu]].begin(), LatticeBlocks[LeftPB_blocks[x][mu]].end(), LeftPB[n][mu]) != LatticeBlocks[LeftPB_blocks[x][mu]].end()){
-				R = w[s][LeftPB[n][mu]][bet] * SignL[n][mu];
-			}
-			C_coeff[x][alf][bet][p][s][mu] += Lp * R;
-
+			else if (block_l == LeftPB_blocks[x][mu])
+				//[C_mu(x)]^{alf,bet}_{p,s} --> C_coeff[x][alf][bet][p][s][mu]
+				C_coeff[x][alf][bet][p][s][mu] += Lp * w[s][LeftPB[n][mu]][bet] * SignL[n][mu];
 		}//mu 
 		}//n 
 

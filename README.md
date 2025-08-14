@@ -9,6 +9,8 @@ Work in progress ...
     - [x] Test implementation for the two-level case
     - [x] Implement boundary conditions for all the levels
     - [x] Implement Level::makeCoarseLinks(Level& next_level) in the general scenario, without calling the $U_\mu$ variables.
+    - [ ] Orthonormalize test vectors
+    - [ ] Check that $P^\dagger D P$ coincides with my coarse gauge implementation for all levels 
     - [ ] Test the implementation for several levels
 - [x] Implement coarse grid matrix 
 - [ ] Implement SAP for each level

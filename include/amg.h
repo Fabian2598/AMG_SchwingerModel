@@ -163,7 +163,14 @@ public:
 	c_double B_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest][2]; //[B_mu(x)]^{alf,bet}_{p,s} --> B_coeff[x][alf][bet][p][s][mu]
 	c_double C_coeff[LV::Nblocks][2][2][AMGV::Ntest][AMGV::Ntest][2];//[C_mu(x)]^{alf,bet}_{p,s}  --> C_coeff[x][alf][bet][p][s][mu]
 
-
+	inline void getLatticeBlock(const int& n, int &block) {
+        int x = n / LV::Nt; //x coordinate of the lattice point 
+        int t = n % LV::Nx; //t coordinate of the lattice point
+        //Reconstructing the block and m index from x and t
+        int block_x = x / LV::x_elements; //Block index in the x direction
+        int block_t = t / LV::t_elements; //Block index in the t direction
+        block = block_x * LV::block_t + block_t; //Block index in the SAP method
+    }
 };
 
 /*

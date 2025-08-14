@@ -35,8 +35,16 @@ public:
         G2 = c_vector(Nsites*2*2*colors*colors*2,0);
         G3 = c_vector(Nsites*2*2*colors*colors*2,0);
 
-        if (level == 0)
+        if (level == 0){
             makeDirac();
+        }
+        
+        std::cout << "Level " << level << " initialized with the following parameters " << "colors " << colors
+        << " NBlocks " << NBlocks << " Nsites " << Nsites
+        << " Ntest " << Ntest << " Nagg " << Nagg << std::endl;
+        std::cout << "Nxsites " << Nxsites << " NtSites " << Ntsites << " DOF " << DOF << std::endl;
+        std::cout << "x_elements " << x_elements << " t_elements " << t_elements << std::endl;
+        std::cout << "sites_per_block " << sites_per_block << "\n" << std::endl;
         
 
     };
@@ -140,7 +148,7 @@ public:
     void printBlocks();
 
     //Creates G1, G2 and G3
-    void makeDirac(const Level& previous_level);
+    void makeDirac();
 
     //Make coarse gauge links. They will be used in the next level as G1, G2 and G3.
     void makeCoarseLinks(Level& next_level);//& A_coeff,c_vector& B_coeff, c_vector& C_coeff);
@@ -170,7 +178,7 @@ public:
     */
     void Pt_v(const spinor& v,spinor& out);
 
-    inline void getLatticeBlock(const int& n, int &m, int &block) {
+    inline void getLatticeBlock(const int& n, int &block) {
         int x = n / Ntsites; //x coordinate of the lattice point 
         int t = n % Ntsites; //t coordinate of the lattice point
         //Reconstructing the block and m index from x and t
@@ -178,9 +186,9 @@ public:
         int block_t = t / t_elements; //Block index in the t direction
         block = block_x * LevelV::BlocksT[level] + block_t; //Block index in the SAP method
 
-        int mx = x % x_elements; //x coordinate in the block
-        int mt = t % t_elements; //t coordinate in the block
-        m = mx * t_elements + mt; //Index in the block
+        //int mx = x % x_elements; //x coordinate in the block
+        //int mt = t % t_elements; //t coordinate in the block
+        //m = mx * t_elements + mt; //Index in the block
     }
 };
 
