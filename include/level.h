@@ -30,7 +30,6 @@ public:
         sCoords = new int[Nsites * 2 * colors];
         cCoords = new int[Nsites * 2 * colors];
 
-
         //Gauge links to define D_operator (matrix problem at this level)
         G1 = c_vector(Nsites*2*2*colors*colors,0);
         G2 = c_vector(Nsites*2*2*colors*colors*2,0);
@@ -156,6 +155,7 @@ public:
     void setUp(); //This is just for testing
 
     void orthonormalize(); //Local orthonormalization of the test vectors
+    void checkOrthogonality(); //Check orthogonality of the test vectors
     std::vector<spinor> v_chopped;
 
 

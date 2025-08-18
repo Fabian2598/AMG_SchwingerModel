@@ -199,8 +199,38 @@ void Level::orthonormalize(){
 
 }; 
 
+void Level::checkOrthogonality() {
+	//Check orthogonality of the test vectors
+	//aggregate 
+	for(int block = 0; block < NBlocks; block++){
+	for (int alf = 0; alf < 2; alf++) {
+		//checking orthogonality 
+		for (int i = 0; i < Ntest; i++) {
+		for (int j = 0; j < Ntest; j++) {
+			c_double dot_product = 0.0;
+			for (int n: LatticeBlocks[block]) {
+			for (int c = 0; c<colors; c++){
+				dot_product += std::conj(interpolator_columns[i][n][2*c+alf]) * interpolator_columns[j][n][2*c+alf];
+			}
+			}
+			if (std::abs(dot_product) > 1e-8 && i!=j) {
+				std::cout << "Test vectors " << i << " and " << j << " are not orthogonal: " << dot_product << std::endl;
+				exit(1);
+			}
+			else if(std::abs(dot_product-1.0) > 1e-8 && i==j){
+				std::cout << "Test vector " << i << " not orthonormalized " << dot_product << std::endl;
+				exit(1);
+			}
+
+		}
+		}
+	}
+	}
+	std::cout << "Test vectors on level " << level << " are orthonormalized " << std::endl;
+}
+
 //Dirac operator at the current level
-void Level::D_operator(const spinor& v, spinor& out){
+void Level::D_operator(const spinor& v, spinor& out){	
 
 	for(int x = 0; x<Nsites;x++){
 	for(int alf = 0; alf<2; alf++){
@@ -214,7 +244,7 @@ void Level::D_operator(const spinor& v, spinor& out){
 		//For the other terms we write the antiperiodic sign here, not in the coefficients
 		for(int mu:{0,1}){
 			out[x][2*c+alf] -= ( G2[getG2G3index(x,alf,bet,c,b,mu)] * SignR_l[level][x][mu] * v[RightPB_l[level][x][mu]][2*b+bet]
-							+ G3[getG2G3index(x,alf,bet,c,b,mu)] * SignL_l[level][x][mu] * v[LeftPB_l[level][x][mu]][2*b+bet] );		
+							+ G3[getG2G3index(x,alf,bet,c,b,mu)] * SignL_l[level][x][mu] * v[LeftPB_l[level][x][mu]][2*b+bet] );
 		}
 	}
 	}
@@ -222,8 +252,6 @@ void Level::D_operator(const spinor& v, spinor& out){
 	}
 	}
 
-	
-	
 }
 
 void Level::P_v(const spinor& v,spinor& out){
@@ -308,13 +336,6 @@ void Level::makeCoarseLinks(Level& next_level){
 	c_vector &A_coeff = next_level.G1; 
 	c_vector &B_coeff = next_level.G2;
 	c_vector &C_coeff = next_level.G3;
-	std::cout << "G1 size " << G1.size() << std::endl;
-	std::cout << "G2 size " << G2.size() << std::endl;
-	std::cout << "G3 size " << G3.size() << std::endl;
-	std::cout << "Next level " << next_level.level << std::endl;
-	std::cout << "A size " << A_coeff.size() << std::endl;
-	std::cout << "B size " << B_coeff.size() << std::endl;
-	std::cout << "C size " << C_coeff.size() << std::endl;
 	int indxA; int indxBC[2]; //Indices for A, B and C coefficients
 	int block_r;
 	int block_l;
@@ -359,16 +380,16 @@ void Level::makeCoarseLinks(Level& next_level){
 				
 				//Only diff from zero when n+hat{mu} in Block(x)
 				if (block_r == x)
-					A_coeff[indxA] += wG2 * w[s][RightPB_l[level][n][mu]][2*b+bet] * SignR_l[level][n][mu];
+					A_coeff[indxA] += wG2 * w[s][RightPB_l[level][n][mu]][2*b+bet];// * SignR_l[level][n][mu];
 				//Only diff from zero when n+hat{mu} in Block(x+hat{mu})
 				else if (block_r == RightPB_l[level+1][x][mu])
-					B_coeff[indxBC[mu]] += wG2 * w[s][RightPB_l[level][n][mu]][2*b+bet];// * SignR_l[level][n][mu]; //Sign considered in the operator
+					B_coeff[indxBC[mu]] += wG2 * w[s][RightPB_l[level][n][mu]][2*b+bet]; //Sign considered in the operator
 				//Only diff from zero when n-hat{mu} in Block(x)
 				if (block_l == x)
-					A_coeff[indxA] += wG3 * w[s][LeftPB_l[level][n][mu]][2*b+bet] *  SignL_l[level][n][mu];
+					A_coeff[indxA] += wG3 * w[s][LeftPB_l[level][n][mu]][2*b+bet];// *  SignL_l[level][n][mu];
 				//Only diff from zero when n-hat{mu} in Block(x-hat{mu})
 				else if (block_l == LeftPB_l[level+1][x][mu])
-					C_coeff[indxBC[mu]] += wG3 * w[s][LeftPB_l[level][n][mu]][2*b+bet];// * SignL_l[level][n][mu];
+					C_coeff[indxBC[mu]] += wG3 * w[s][LeftPB_l[level][n][mu]][2*b+bet];
 	
 			}
 			}	

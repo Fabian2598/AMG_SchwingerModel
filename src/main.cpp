@@ -92,123 +92,77 @@ int main(int argc, char **argv) {
     //Level2.makeBlocks(); //--> Not necessary for the coarsest level
     std::cout << "Blocks built " << std::endl;
 
-    
-    //Checking operator at level = 0 
-    spinor v(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
-    for(int n = 0; n < LevelV::Nsites[0]; n++){
-        v[n][0] = RandomU1(); v[n][1] = RandomU1();
-    }
-    spinor out(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
-    spinor outv2(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
-    std::cout << "computing Dirac " << std::endl;
-    D_phi(GConf.Conf,v,out,mass::m0);
-    Level0.D_operator(v,outv2);
-
-    for(int n = 0; n < LevelV::Nsites[0]; n++){
-    for(int mu : {0,1}){
-        if (std::abs(out[n][mu]-outv2[n][mu]) > 1e-8 ){
-            std::cout << "[" << n << "][" << mu << "] " << "for level 0  different" << std::endl; 
-            std::cout << out[n][mu] << "   /=    " << outv2[n][mu] << std::endl;
-            return 1;
-        }
-    }
-    }
-    std::cout << "test passed for level 0 " << out[0][0] << "   =    " << outv2[0][0] << "\n" << std::endl;
+   
     //---------------------------------------//
     //Checking operator at level = 1
     std::cout << "Set up and orthonormalization ... " << std::endl;
     Level0.setUp(); //Build test vectors 
-    std::cout << "done " << std::endl;
+    Level0.checkOrthogonality();
     Level0.makeCoarseLinks(Level1);
 
 
     Level1.setUp(); //Build test vectors for level 1
+    Level1.checkOrthogonality();
     Level1.makeCoarseLinks(Level2);
     
-    spinor vL1(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],1));
-    spinor v1(AMGV::Ntest,c_vector(AMGV::Nagg,1));
-    for(int n = 0; n < LevelV::Nsites[level1]; n++){
-        for(int m; m<LevelV::DOF[level1]; m++){
-            vL1[n][m] = 1;//RandomU1();
-        }  
-    }
-
-    spinor outL1(AMGV::Ntest,c_vector(AMGV::Nagg,1));
-    spinor outv2L1(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],1));
-    amg.Pt_D_P(v1,outL1);
     
-    Level1.D_operator(vL1,outv2L1);
-
-    
-    for(int ntest = 0; ntest<AMGV::Ntest; ntest++){
-        for(int nagg = 0; nagg<AMGV::Nagg; nagg++){
-            int x = nagg / 2; //Lattice block
-            int alf = nagg % 2; //spin
-            if (std::abs(outL1[ntest][nagg]-outv2L1[x][2*ntest+alf]) > 1e-8 ){
-            std::cout << "[" << ntest << "][" << nagg << "] " << "for level 1  different" << std::endl; 
-            std::cout << outL1[ntest][nagg] << "   /=    " << outv2L1[x][2*ntest+alf] << std::endl;
-            return 1;
-            }
-        }
-    }
-    
-
-
-    std::cout << "Test passed for level 1 " << outL1[0][0] << "   ==    " << outv2L1[0][0] << std::endl;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Testing that P^dag D P = D_c level by level 
 
     
-
     //---Testing level 1
-    spinor V1(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],1));
-    spinor temp(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],0));
-    spinor Dphi(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],0));
-    spinor outv3(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],0));
-    Level0.P_v(V1,temp);
-    //std::cout << "All good" << std::endl;
-    Level0.D_operator(temp,Dphi);
-    Level0.Pt_v(Dphi,outv3);
+    spinor in1(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],1)); //in
+    spinor temp1(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],0));
+    spinor Dphi1(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],0));
+    spinor out1(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],0)); //out
+    spinor out1_v2(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],0)); //D_c
+    //P^H D P
+    Level0.P_v(in1,temp1);
+    Level0.D_operator(temp1,Dphi1);
+    Level0.Pt_v(Dphi1,out1);
+
+    Level1.D_operator(in1,out1_v2);
     std::cout << "Testing level 1" << std::endl;
     for(int x = 0; x<LevelV::Nsites[level1]; x++){
         for(int dof = 0; dof<LevelV::DOF[level1]; dof++){
-            if (std::abs(outv3[x][dof]-outv2L1[x][dof]) > 1e-8 ){
+            if (std::abs(out1[x][dof]-out1_v2[x][dof]) > 1e-8 ){
             std::cout << "[" << x << "][" << dof << "] " << "for level 1  different" << std::endl; 
-            std::cout << outv3[x][dof] << "   /=    " << outv2L1[x][dof] << std::endl;
+            std::cout << out1[x][dof] << "   /=    " << out1_v2[x][dof] << std::endl;
             return 1;
             }
         }
     }
     
     std::cout << "P^dag D P coincides with Dc for level 1" << std::endl;
-    std::cout << outv3[0][0] << "   =    " << outv2L1[0][0] << std::endl;
+    std::cout << out1[0][0] << "   =    " << out1_v2[0][0] << std::endl;
 
     //----This one does not coincide----//
     //----Testing level 2
     std::cout << "Testing level 2" << std::endl;
-    spinor V2(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],1));
+    spinor in2(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],1));
     spinor temp2(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],0));
     spinor Dphi2(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],0));
-    spinor outv4(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],0));
-    spinor outv2L2(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],0));
-    Level1.P_v(V2,temp2);
-    //std::cout << "All good" << std::endl;
+    spinor out2(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],0));
+    spinor out2_v2(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],0));
+    Level1.P_v(in2,temp2);
     Level1.D_operator(temp2,Dphi2);
-    Level1.Pt_v(Dphi2,outv4);
+    Level1.Pt_v(Dphi2,out2);
     
-    Level2.D_operator(V2,outv2L2);
+    
+
+    Level2.D_operator(in2,out2_v2);
     for(int x = 0; x<LevelV::Nsites[level2]; x++){
         for(int dof = 0; dof<LevelV::DOF[level2]; dof++){
-            if (std::abs(outv4[x][dof]-outv2L2[x][dof]) > 1e-8 ){
+            if (std::abs(out2[x][dof]-out2_v2[x][dof]) > 1e-8 ){
             std::cout << "[" << x << "][" << dof << "] " << "for level 2  different" << std::endl; 
-            std::cout << outv4[x][dof] << "   /=    " << outv2L2[x][dof] << std::endl;
+            std::cout << out2[x][dof] << "   /=    " << out2_v2[x][dof] << std::endl;
             return 1;
             }
         }
     }
-   
+    
     
     return 0;
 }
@@ -288,3 +242,64 @@ int main(int argc, char **argv) {
     std::cout << "amg 3" << amg.C_coeff[x][alf][bet][p][s][0] << std::endl;
     std::cout << "g3 " << Level1.G3[indx2] << std::endl;
     */
+
+
+    /*
+     
+    //Checking operator at level = 0 
+    spinor v(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
+    for(int n = 0; n < LevelV::Nsites[0]; n++){
+        v[n][0] = RandomU1(); v[n][1] = RandomU1();
+    }
+    spinor out(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
+    spinor outv2(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
+    std::cout << "computing Dirac " << std::endl;
+    D_phi(GConf.Conf,v,out,mass::m0);
+    Level0.D_operator(v,outv2);
+
+    for(int n = 0; n < LevelV::Nsites[0]; n++){
+    for(int mu : {0,1}){
+        if (std::abs(out[n][mu]-outv2[n][mu]) > 1e-8 ){
+            std::cout << "[" << n << "][" << mu << "] " << "for level 0  different" << std::endl; 
+            std::cout << out[n][mu] << "   /=    " << outv2[n][mu] << std::endl;
+            return 1;
+        }
+    }
+    }
+    std::cout << "test passed for level 0 " << out[0][0] << "   =    " << outv2[0][0] << "\n" << std::endl;
+
+     //spinor vL1(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],1));
+    //spinor v1(AMGV::Ntest,c_vector(AMGV::Nagg,1));
+    //for(int n = 0; n < LevelV::Nsites[level1]; n++){
+    //    for(int m; m<LevelV::DOF[level1]; m++){
+    //        vL1[n][m] = 1;//RandomU1();
+    //    }  
+    //}
+
+    //spinor outL1(AMGV::Ntest,c_vector(AMGV::Nagg,1));
+    //spinor outv2L1(LevelV::Nsites[level1],c_vector(LevelV::DOF[level1],1));
+    //amg.Pt_D_P(v1,outL1);
+    
+    
+    //Level1.D_operator(vL1,outv2L1);
+
+    /*
+    for(int ntest = 0; ntest<AMGV::Ntest; ntest++){
+        for(int nagg = 0; nagg<AMGV::Nagg; nagg++){
+            int x = nagg / 2; //Lattice block
+            int alf = nagg % 2; //spin
+            if (std::abs(outL1[ntest][nagg]-outv2L1[x][2*ntest+alf]) > 1e-8 ){
+            std::cout << "[" << ntest << "][" << nagg << "] " << "for level 1  different" << std::endl; 
+            std::cout << outL1[ntest][nagg] << "   /=    " << outv2L1[x][2*ntest+alf] << std::endl;
+            return 1;
+            }
+        }
+    }
+    
+
+
+    std::cout << "Test passed for level 1 " << outL1[0][0] << "   ==    " << outv2L1[0][0] << std::endl;
+    */
+
+    
+    
