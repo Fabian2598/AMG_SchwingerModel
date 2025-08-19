@@ -5,7 +5,7 @@ Work in progress ...
 
 - [x] Make aggregates and lattice blocks
 - [x] Implement restriction and interpolation
-- [ ] Implement coarse gauge fields
+- [x] Implement coarse gauge fields
     - [x] Test implementation for the two-level case
     - [x] Implement boundary conditions for all the levels
     - [x] Implement Level::makeCoarseLinks(Level& next_level) in the general scenario, without calling the $U_\mu$ variables.
