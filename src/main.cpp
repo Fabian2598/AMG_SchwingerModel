@@ -80,19 +80,19 @@ int main(int argc, char **argv) {
     Level Level0(level0,GConf.Conf);
     Level Level1(level1,GConf.Conf);
     Level Level2(level2,GConf.Conf);
-    //Level Level3(level3,GConf.Conf);
+    Level Level3(level3,GConf.Conf);
 
     
     Level0.makeAggregates();
     std::cout << "Aggregates Level 0 built " << std::endl;
     Level1.makeAggregates();
     std::cout << "Aggregates Level 1 built " << std::endl;
-    //Level2.makeAggregates(); //-->For the coarsest level this is not necessary
+    Level2.makeAggregates(); //-->For the coarsest level this is not necessary
     std::cout << "Aggregates Level 2 built " << std::endl;
 
     Level0.makeBlocks();
     Level1.makeBlocks();
-    //Level2.makeBlocks(); //--> Not necessary for the coarsest level
+    Level2.makeBlocks(); //--> Not necessary for the coarsest level
     std::cout << "Blocks built " << std::endl;
 
    
@@ -107,9 +107,9 @@ int main(int argc, char **argv) {
     Level1.checkOrthogonality();
     Level1.makeCoarseLinks(Level2); //D_operator for level 2
 
-    //Level2.setUp(); //Build test vectors for level 2
-    //Level2.checkOrthogonality();
-    //Level2.makeCoarseLinks(Level3); //D_operator for level 3
+    Level2.setUp(); //Build test vectors for level 2
+    Level2.checkOrthogonality();
+    Level2.makeCoarseLinks(Level3); //D_operator for level 3
     
     
 
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
 
     std::cout << "P^dag D P coincides with Dc for level 2" << std::endl;
     std::cout << out2[0][0] << "   =    " << out2_v2[0][0] << std::endl;
-/*
+
     //----Testing level 3
     std::cout << "Testing level 2" << std::endl;
     spinor in3(LevelV::Nsites[level3],c_vector(LevelV::DOF[level3],1));
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
 
     std::cout << "P^dag D P coincides with Dc for level 3" << std::endl;
     std::cout << out3[0][0] << "   =    " << out3_v2[0][0] << std::endl;
-    */
+    
     
     return 0;
 }

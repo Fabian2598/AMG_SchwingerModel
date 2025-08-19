@@ -59,13 +59,14 @@ public:
     std::vector<spinor> interpolator_columns;
 //private:
     const int level; 
-    const int x_elements = LevelV::NxSites[level] / LevelV::BlocksX[level], t_elements = LevelV::NtSites[level] / LevelV::BlocksT[level]; //x and t elements of each lattice block
+    const int x_elements = (level != LevelV::maxLevel) ?  LevelV::NxSites[level] / LevelV::BlocksX[level]: 1;
+    const int t_elements = (level != LevelV::maxLevel) ?  LevelV::NtSites[level] / LevelV::BlocksT[level]: 1; //x and t elements of each lattice block
     const int sites_per_block = x_elements * t_elements;
-    const int NBlocks = LevelV::NBlocks[level]; //Number of lattice blocks 
+    const int NBlocks = (level != LevelV::maxLevel) ? LevelV::NBlocks[level]: 1; //Number of lattice blocks 
     const int colors = LevelV::Colors[level];   //Number of colors at this level
     const int Nsites = LevelV::Nsites[level];   //Number of lattice sites at this level
-    const int Ntest = LevelV::Ntest[level];     //Number of test vectors to go to the next level
-    const int Nagg = LevelV::Nagg[level];       //Number of aggregates to go to the next level
+    const int Ntest = (level != LevelV::maxLevel) ? LevelV::Ntest[level]: 1;     //Number of test vectors to go to the next level
+    const int Nagg = (level != LevelV::maxLevel) ? LevelV::Nagg[level]: 1;       //Number of aggregates to go to the next level
     const int DOF = LevelV::DOF[level];         //Degrees of freedom at each lattice site at this level
     int Ntsites = LevelV::NtSites[level];       //Number of time sites at this level
     int Nxsites = LevelV::NxSites[level];       //Number of space sites at this level

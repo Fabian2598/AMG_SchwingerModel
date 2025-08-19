@@ -214,10 +214,13 @@ void Level::checkOrthogonality() {
 			}
 			}
 			if (std::abs(dot_product) > 1e-8 && i!=j) {
+				std::cout << "Block " << block << " spin " << alf << std::endl;
+				std::cout << "Level " << level << std::endl;
 				std::cout << "Test vectors " << i << " and " << j << " are not orthogonal: " << dot_product << std::endl;
 				exit(1);
 			}
 			else if(std::abs(dot_product-1.0) > 1e-8 && i==j){
+				std::cout << "Level " << level << std::endl;
 				std::cout << "Test vector " << i << " not orthonormalized " << dot_product << std::endl;
 				exit(1);
 			}
@@ -339,22 +342,8 @@ void Level::makeCoarseLinks(Level& next_level){
 	int indxA; int indxBC[2]; //Indices for A, B and C coefficients
 	int block_r;
 	int block_l;
-	/*
-	//Printing the test vectors
-	for(int ntest = 0; ntest<Ntest; ntest++){
-		for(int dof = 0; dof<DOF; dof++){
-			std::cout << "w[" << ntest << "][" << dof << "] = ";
-			for(int n = 0; n < Nsites; n++){
-				std::cout << w[ntest][n][dof] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	*/
 	//p and s are the coarse colors
 	//c and b are the colors at the current level
-	std::cout << "NBlocks " << NBlocks << " Ntest " << Ntest << " Nagg " << Nagg << std::endl;
-	std::cout << "colors " << colors << " DOF " << DOF << std::endl;
 	for(int x=0; x<NBlocks; x++){
 	for(int alf=0; alf<2;alf++){
 	for(int bet=0; bet<2;bet++){

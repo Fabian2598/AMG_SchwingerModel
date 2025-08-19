@@ -18,12 +18,12 @@ set(SRC_FILES
 )
 
 #--------------------------Lattice dimensions---------------------------#
-set(NS "16") #Space
-set(NT "16") #Time
+set(NS "32") #Space
+set(NT "32") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
-set(LEVELS "3") #Number of AMG levels (Including the finest level)
+set(LEVELS "4") #Number of AMG levels (Including the finest level)
 #-----------------------------------------------------------------------#
 
 #------------------Lattice blocks used for aggregation------------------#
