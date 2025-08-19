@@ -371,7 +371,7 @@ void Level::makeCoarseLinks(Level& next_level){
 			for(int b = 0; b<colors; b++){
 			
 				//[w*_p^(block,alf)]_{c,alf}(x) [A(x)]^{alf,bet}_{c,b} [w_s^{block,bet}]_{b,bet}(x)
-			A_coeff[indxA] -= std::conj(w[p][n][2*c+alf]) * G1[getG1index(n,alf,bet,c,b)] * std::conj(w[s][n][2*b+bet]);
+			A_coeff[indxA] += std::conj(w[p][n][2*c+alf]) * G1[getG1index(n,alf,bet,c,b)] * w[s][n][2*b+bet];
 			for(int mu : {0,1}){
 				getLatticeBlock(RightPB_l[level][n][mu], block_r); //block_r: block where RightPB_l[n][mu] lives
 				getLatticeBlock(LeftPB_l[level][n][mu], block_l); //block_l: block where LeftPB_l[n][mu] lives

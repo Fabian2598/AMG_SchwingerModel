@@ -13,6 +13,13 @@
 class Level {
 public:
     Level(const int& level, const c_matrix& U) : level(level), U(U) {
+        std::cout << "Level " << level << " initialized with the following parameters " << "colors " << colors
+        << " NBlocks " << NBlocks << " Nsites " << Nsites
+        << " Ntest " << Ntest << " Nagg " << Nagg << std::endl;
+        std::cout << "Nxsites " << Nxsites << " NtSites " << Ntsites << " DOF " << DOF << std::endl;
+        std::cout << "x_elements " << x_elements << " t_elements " << t_elements << std::endl;
+        std::cout << "sites_per_block " << sites_per_block << "\n" << std::endl;
+
         test_vectors = std::vector<spinor>(Ntest,
         spinor( Nsites, c_vector (DOF,0))); 
 	    interpolator_columns = std::vector<spinor>(Ntest,
@@ -39,14 +46,6 @@ public:
             makeDirac();
         }
         
-        std::cout << "Level " << level << " initialized with the following parameters " << "colors " << colors
-        << " NBlocks " << NBlocks << " Nsites " << Nsites
-        << " Ntest " << Ntest << " Nagg " << Nagg << std::endl;
-        std::cout << "Nxsites " << Nxsites << " NtSites " << Ntsites << " DOF " << DOF << std::endl;
-        std::cout << "x_elements " << x_elements << " t_elements " << t_elements << std::endl;
-        std::cout << "sites_per_block " << sites_per_block << "\n" << std::endl;
-        
-
     };
 
     ~Level() {

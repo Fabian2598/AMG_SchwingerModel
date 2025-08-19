@@ -58,34 +58,37 @@ int main(int argc, char **argv) {
         for(int l=0; l< AMGV::levels-1; l++){
             std::cout << "Level " << l << " Block X " << BlocksX[l] 
             << " Block T " << BlocksT[l] << " Ntest " << Ntest[l] << " Nagg " << Nagg[l]
-            << " Number of lattice blocks" << NBlocks[l] << std::endl;
+            << " Number of lattice blocks " << NBlocks[l] << std::endl;
         }
         for(int l=0; l< AMGV::levels; l++){
             std::cout << "Level " << l << " Nsites " << Nsites[l] 
             << " Nxsites " << NxSites[l] << " NtSites " << NtSites[l] << " DOF " << DOF[l]
             << " Colors " << Colors[l] << std::endl;
         }
+        std::cout << "\n";
     }
     Aggregates();
 
-    AMG amg(GConf, m0,AMGV::nu1, AMGV::nu2); 
-	amg.setUpPhase(1,AMGV::Nit);
-    amg.initializeCoarseLinks();
+    //AMG amg(GConf, m0,AMGV::nu1, AMGV::nu2); 
+	//amg.setUpPhase(1,AMGV::Nit);
+    //amg.initializeCoarseLinks();
     
     int level0 = 0;
     int level1 = 1;
     int level2 = 2;
+    int level3 = 3;
     Level Level0(level0,GConf.Conf);
     Level Level1(level1,GConf.Conf);
     Level Level2(level2,GConf.Conf);
+    //Level Level3(level3,GConf.Conf);
 
-
+    
     Level0.makeAggregates();
     std::cout << "Aggregates Level 0 built " << std::endl;
     Level1.makeAggregates();
     std::cout << "Aggregates Level 1 built " << std::endl;
-    //Level2.makeAggregates(); -->For the coarsest level this is not necessary
-    //std::cout << "Aggregates Level 2 built " << std::endl;
+    //Level2.makeAggregates(); //-->For the coarsest level this is not necessary
+    std::cout << "Aggregates Level 2 built " << std::endl;
 
     Level0.makeBlocks();
     Level1.makeBlocks();
@@ -98,12 +101,15 @@ int main(int argc, char **argv) {
     std::cout << "Set up and orthonormalization ... " << std::endl;
     Level0.setUp(); //Build test vectors 
     Level0.checkOrthogonality();
-    Level0.makeCoarseLinks(Level1);
-
+    Level0.makeCoarseLinks(Level1); //D_operator for level 1
 
     Level1.setUp(); //Build test vectors for level 1
     Level1.checkOrthogonality();
-    Level1.makeCoarseLinks(Level2);
+    Level1.makeCoarseLinks(Level2); //D_operator for level 2
+
+    //Level2.setUp(); //Build test vectors for level 2
+    //Level2.checkOrthogonality();
+    //Level2.makeCoarseLinks(Level3); //D_operator for level 3
     
     
 
@@ -138,7 +144,7 @@ int main(int argc, char **argv) {
     std::cout << "P^dag D P coincides with Dc for level 1" << std::endl;
     std::cout << out1[0][0] << "   =    " << out1_v2[0][0] << std::endl;
 
-    //----This one does not coincide----//
+  
     //----Testing level 2
     std::cout << "Testing level 2" << std::endl;
     spinor in2(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],1));
@@ -162,7 +168,37 @@ int main(int argc, char **argv) {
             }
         }
     }
+
+    std::cout << "P^dag D P coincides with Dc for level 2" << std::endl;
+    std::cout << out2[0][0] << "   =    " << out2_v2[0][0] << std::endl;
+/*
+    //----Testing level 3
+    std::cout << "Testing level 2" << std::endl;
+    spinor in3(LevelV::Nsites[level3],c_vector(LevelV::DOF[level3],1));
+    spinor temp3(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],0));
+    spinor Dphi3(LevelV::Nsites[level2],c_vector(LevelV::DOF[level2],0));
+    spinor out3(LevelV::Nsites[level3],c_vector(LevelV::DOF[level3],0));
+    spinor out3_v2(LevelV::Nsites[level3],c_vector(LevelV::DOF[level3],0));
+    Level2.P_v(in3,temp3);
+    Level2.D_operator(temp3,Dphi3);
+    Level2.Pt_v(Dphi3,out3);
     
+    
+
+    Level3.D_operator(in3,out3_v2);
+    for(int x = 0; x<LevelV::Nsites[level3]; x++){
+        for(int dof = 0; dof<LevelV::DOF[level3]; dof++){
+            if (std::abs(out3[x][dof]-out3_v2[x][dof]) > 1e-8 ){
+            std::cout << "[" << x << "][" << dof << "] " << "for level 3  different" << std::endl; 
+            std::cout << out3[x][dof] << "   /=    " << out3_v2[x][dof] << std::endl;
+            return 1;
+            }
+        }
+    }
+
+    std::cout << "P^dag D P coincides with Dc for level 3" << std::endl;
+    std::cout << out3[0][0] << "   =    " << out3_v2[0][0] << std::endl;
+    */
     
     return 0;
 }
