@@ -45,6 +45,8 @@ namespace LevelV{
     int NtSites[AMGV::levels];
     int DOF[AMGV::levels];
     int Colors[AMGV::levels];
+    int SAP_Block_x[AMGV::levels];
+    int SAP_Block_t[AMGV::levels];
 };
 
 

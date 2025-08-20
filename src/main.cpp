@@ -62,7 +62,8 @@ int main(int argc, char **argv) {
         for(int l=0; l< AMGV::levels-1; l++){
             std::cout << "Level " << l << " Block X " << BlocksX[l] 
             << " Block T " << BlocksT[l] << " Ntest " << Ntest[l] << " Nagg " << Nagg[l]
-            << " Number of lattice blocks " << NBlocks[l] << std::endl;
+            << " Number of lattice blocks " << NBlocks[l] 
+            << " Schwarz Block T " << SAP_Block_t[l] << " Schwarz Block X " << SAP_Block_x[l] << std::endl;
         }
         for(int l=0; l< AMGV::levels; l++){
             std::cout << "Level " << l << " Nsites " << Nsites[l] 
@@ -84,6 +85,12 @@ int main(int argc, char **argv) {
     int iter = 100;
     MPI_Barrier(MPI_COMM_WORLD);
     sap.SAP(rhs,x,iter,SAPV::sap_blocks_per_proc,true);
+
+    Level Level0(level0, GConf.Conf);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    //Check D_local implementation 
+    Level0.sap_l.SAP(rhs,x,iter,SAPV::sap_blocks_per_proc,true);
 
     MPI_Finalize();
 

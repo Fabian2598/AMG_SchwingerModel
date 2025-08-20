@@ -6,7 +6,7 @@
 /*
     Function for reading the AMG blocks and test vectors for each level
     The parameters file has the following information on each row
-    level, block_x, block_t, ntest
+    level, block_x, block_t, ntest, sap_block_x, sap_block_t
 */
 void readParameters(const std::string& inputFile){
     std::ostringstream NameData;
@@ -19,8 +19,9 @@ void readParameters(const std::string& inputFile){
     int block_x, block_t, ntest;
     int level; 
     int maxLevel = LevelV::maxLevel;
+    int sap_block_x, sap_block_t;
     //read parameters for level < max_level
-    while (infile >> level >> block_x >> block_t >> ntest) {
+    while (infile >> level >> block_x >> block_t >> ntest >> sap_block_x >> sap_block_t) {
         LevelV::BlocksX[level] = block_x;
         LevelV::BlocksT[level] = block_t;
         LevelV::Ntest[level] = ntest;
@@ -31,6 +32,8 @@ void readParameters(const std::string& inputFile){
         LevelV::NtSites[level] = (level == 0 ) ? LV::Nt : LevelV::BlocksT[level-1];
 		LevelV::DOF[level] = (level == 0 ) ? 2 : 2 * LevelV::Ntest[level-1];
         LevelV::Colors[level] = (level == 0 ) ? 1 : LevelV::Ntest[level-1]; 
+        LevelV::SAP_Block_x[level] = sap_block_x;
+        LevelV::SAP_Block_t[level] = sap_block_t;
     }
     //Store the number of sites and degrees of freedom for the coarsest lattice as well
     LevelV::Nsites[maxLevel] =   LevelV::BlocksX[maxLevel-1] * LevelV::BlocksT[maxLevel-1];
@@ -38,6 +41,9 @@ void readParameters(const std::string& inputFile){
     LevelV::NxSites[maxLevel] = LevelV::BlocksX[maxLevel-1];
     LevelV::NtSites[maxLevel] = LevelV::BlocksT[maxLevel-1];
     LevelV::Colors[maxLevel] = LevelV::Ntest[maxLevel-1];
+    LevelV::SAP_Block_x[maxLevel] = 1; //For the coarsest level we don't need a blocking, but it is necessary to define some numbers here.
+    LevelV::SAP_Block_t[maxLevel] = 1;
+
     infile.close();
     std::cout << "Parameters read from " << NameData.str() << std::endl;
 }

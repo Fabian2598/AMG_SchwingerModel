@@ -57,8 +57,8 @@ public:
     SAP_C(const int& dim1, const int& dim2, const double& tol,const int& Nt, const int& Nx,const int& block_x,const int& block_t, const int& spins,
         const int& colors) :
     dim1(dim1), dim2(dim2), tol(tol), Nt(Nt), Nx(Nx), Block_x(block_x), Block_t(block_t), spins(spins), colors(colors),
-    gmres_DB(SAPV::sap_lattice_sites_per_block, 
-        2, 
+    gmres_DB(Nx/block_x* Nt/block_t, 
+        dim2, 
         SAPV::sap_gmres_restart_length, 
         SAPV::sap_gmres_restarts, 
         SAPV::sap_gmres_tolerance,
@@ -70,7 +70,7 @@ public:
         lattice_sites_per_block = x_elements * t_elements; //Number of lattice points in the block
         variables_per_block = 2 * lattice_sites_per_block; //Number of variables in the block 
         coloring_blocks = NBlocks/2; //Number of red or black blocks
-        Ntot = Nt * Nx; //Total number of lattice points
+        Ntot = Nt * Nx; //Total number of lattice points This is equal to dim1 ...
 
         Blocks = std::vector<std::vector<int>>(block_x*block_t, std::vector<int>(x_elements*t_elements, 0));
         RedBlocks = std::vector<int>(coloring_blocks, 0); //Red blocks
@@ -136,7 +136,7 @@ private:
         
 };
 
-
+//Method used in my two-grid implementation 
 class SAP_fine_level : public SAP_C {
 public:
     SAP_fine_level(const int& dim1, const int& dim2, const double& tol,const int& Nt, const int& Nx,const int& block_x,const int& block_t,

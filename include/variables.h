@@ -88,6 +88,10 @@ namespace LevelV{
     //On the finest level, DOF = 2 (only spin), on the coarse levels DOF = 2*Ntest
     extern int Colors[AMGV::levels]; //Number of "colors" at each level 
     constexpr int maxLevel = AMGV::levels - 1; //Maximum level id is levels - 1
+
+    extern int SAP_Block_x[AMGV::levels]; //Number of SAP blocks on the x direction 
+    extern int SAP_Block_t[AMGV::levels]; //Number of SAP blocks on the y direction
+    //For the coarsest level we could define a blocking or just ignore this.
 }
 
 //--------------Parameters for FGMRES--------------//

@@ -6,19 +6,87 @@
 #include <algorithm>
 #include "dirac_operator.h"
 #include "gauge_conf.h"
+#include "sap.h"
 
 /*
     One level of the AMG method
 */
 class Level {
-public:
-    Level(const int& level, const c_matrix& U) : level(level), U(U) {
+public:   
+    //SAP for smoothing D_operator
+    //-------------------------------Nested class-------------------------------//
+    class SAP_level_l : public SAP_C {
+    public:
+        SAP_level_l(const int& dim1, const int& dim2, const double& tol,const int& Nt, const int& Nx,const int& block_x,const int& block_t,
+        const int& spins, const int& colors,Level* parent) :
+        SAP_C(dim1, dim2, tol, Nt, Nx, block_x, block_t,spins,colors), parent(parent) {
+        }
+
+ 
+
+    private: 
+        Level* parent; //Parent class
+        /*
+        Global D operation
+        */
+        void funcGlobal(const spinor& in, spinor& out) override { 
+            parent->D_operator(in, out); //Dirac operator at the current level
+        }
+
+        /*
+        Local D operations
+        */
+        void D_local(const spinor& in, spinor& out, const int& block);
+
+        void funcLocal(const spinor& in, spinor& out) override { 
+            std::cout << "funcLocal called for block " << blockMPI << std::endl;
+            D_local( in, out,blockMPI);
+        }
+
+        /*
+            Given a lattice point index n, it returns the corresponding 
+            SAP block index and the local index m within that block.
+        */
+        inline void getMandBlock(const int& n, int &m, int &block) {
+            int x = n / Nx; //x coordinate of the lattice point 
+            int t = n % Nt; //t coordinate of the lattice point
+            //Reconstructing the block and m index from x and t
+            int block_x = x / x_elements; //Block index in the x direction
+            int block_t = t / t_elements; //Block index in the t direction
+            block = block_x * Block_t + block_t; //Block index in the SAP method
+
+            int mx = x % x_elements; //x coordinate in the block
+            int mt = t % t_elements; //t coordinate in the block
+            m = mx * t_elements + mt; //Index in the block
+        }
+
+    };
+
+    SAP_level_l sap_l; 
+
+    //----------------------------------------------------------------------------//
+    
+    //Level Constructor
+    Level(const int& level, const c_matrix& U) : level(level), U(U),
+        sap_l(LevelV::Nsites[level], 
+            LevelV::DOF[level], 
+            SAPV::sap_tolerance,
+            LevelV::NtSites[level], 
+            LevelV::NxSites[level],
+            LevelV::SAP_Block_x[level],
+            LevelV::SAP_Block_t[level],
+            2, //two spins
+            LevelV::Colors[level],
+            this)
+    {
+        /*
         std::cout << "Level " << level << " initialized with the following parameters " << "colors " << colors
         << " NBlocks " << NBlocks << " Nsites " << Nsites
         << " Ntest " << Ntest << " Nagg " << Nagg << std::endl;
         std::cout << "Nxsites " << Nxsites << " NtSites " << Ntsites << " DOF " << DOF << std::endl;
         std::cout << "x_elements " << x_elements << " t_elements " << t_elements << std::endl;
         std::cout << "sites_per_block " << sites_per_block << "\n" << std::endl;
+        */
 
         test_vectors = std::vector<spinor>(Ntest,
         spinor( Nsites, c_vector (DOF,0))); 
@@ -193,6 +261,8 @@ public:
         //int mt = t % t_elements; //t coordinate in the block
         //m = mx * t_elements + mt; //Index in the block
     }
+
+
 };
 
 

@@ -23,7 +23,7 @@ set(NT "64") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
-set(LEVELS "4") #Number of AMG levels (Including the finest level)
+set(LEVELS "3") #Number of AMG levels (Including the finest level)
 #-----------------------------------------------------------------------#
 
 #------------------Lattice blocks used for aggregation------------------#

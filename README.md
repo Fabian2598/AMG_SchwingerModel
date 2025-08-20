@@ -14,7 +14,7 @@ Work in progress ...
     - [x] Test the implementation for several levels (Tested up to four levels)
 - [x] Implement coarse grid matrix 
 - [ ] Implement SAP for each level
-    -[ ] Rewrite method for the Level0 and check that it coincide with the previous implementation
+    - [ ] Rewrite method for the Level0 and check that it coincide with the previous implementation
 - [ ] Integrate everything in a V-cycle
 - [ ] Improve performance (if needed)
 - [ ] Implement an K-cycle

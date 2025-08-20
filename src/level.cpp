@@ -389,3 +389,76 @@ void Level::makeCoarseLinks(Level& next_level){
 	} //x 
 	
 }
+
+void Level::SAP_level_l::D_local(const spinor& in, spinor& out, const int& block){
+
+	int RightPB_0, blockRPB_0; //Right periodic boundary in the 0-direction
+    int RightPB_1, blockRPB_1; //Right periodic boundary in the 1-direction
+    int LeftPB_0, blockLPB_0; //Left periodic boundary in the 0-direction
+    int LeftPB_1, blockLPB_1; //Left periodic boundary in the 1-direction
+
+    c_vector phi_RPB_0 = c_vector(2, 0);
+    c_vector phi_RPB_1 = c_vector(2, 0);
+    c_vector phi_LPB_0 = c_vector(2, 0);
+    c_vector phi_LPB_1 = c_vector(2, 0);
+
+	spinor phi_RPB = spinor(2,c_vector(spins*colors,0));
+	spinor phi_LPB = spinor(2,c_vector(spins*colors,0));
+
+	//x is the index inside of the Schwarz block	
+	for(int x = 0; x<lattice_sites_per_block;x++){
+		int n = Blocks[block][x]; //n is the index of the lattice point in the original lattice
+		//Getting the block indices associated with the left and right neighbors
+        getMandBlock(RightPB_l[parent->level][n][0], RightPB_0, blockRPB_0);
+		getMandBlock(RightPB_l[parent->level][n][1], RightPB_1, blockRPB_1); 
+        getMandBlock(LeftPB_l[parent->level][n][0], LeftPB_0, blockLPB_0); 
+        getMandBlock(LeftPB_l[parent->level][n][1], LeftPB_1, blockLPB_1); 
+        
+		//If the neighbor sites are part of the same block we consider them for D 
+		//otherwise, we ignore them. 
+        if(blockRPB_0 == block){phi_RPB[0] = in[RightPB_0]; }
+        else {
+			for(int dof; parent->DOF; dof++)
+				phi_RPB[0][dof]=0;
+		}
+
+        if(blockRPB_1 == block){phi_RPB[1] = in[RightPB_1];}
+        else { 
+			for(int dof; parent->DOF; dof++)
+				phi_RPB[1][dof]=0;
+		}
+
+        if(blockLPB_0 == block){ phi_LPB[0] = in[LeftPB_0];}
+        else {
+			for(int dof; parent->DOF; dof++)
+				phi_LPB[0][dof]=0;
+		}
+
+        if(blockLPB_1 == block) {phi_LPB_1 = in[LeftPB_1]; phi_LPB[1] = in[LeftPB_1]; }
+        else {
+			for(int dof; parent->DOF; dof++)
+				phi_LPB[1][dof]=0;
+		}
+
+		for(int alf = 0; alf<2; alf++){
+		for(int c = 0; c<colors; c++){
+				out[x][2*c+alf] = (mass::m0+2)*in[x][2*c+alf];
+			for(int bet = 0; bet<2; bet++){
+			for(int b = 0; b<colors; b++){
+				out[x][2*c+alf] -= parent->G1[parent->getG1index(n,alf,bet,c,b)] * in[x][2*b+bet];
+				for(int mu:{0,1}){
+					out[x][2*c+alf] -= 
+						( parent->G2[parent->getG2G3index(n,alf,bet,c,b,mu)] * SignR_l[parent->level][n][mu] * phi_RPB[mu][2*+bet]
+						+ parent->G3[parent->getG2G3index(n,alf,bet,c,b,mu)] * SignL_l[parent->level][n][mu] * phi_LPB[mu][2*+bet]
+						);
+				}
+
+			}
+			}
+		}
+		}
+	}
+	
+	std::cout << "finished the loop\n";
+
+}
