@@ -39,7 +39,7 @@ public:
         void D_local(const spinor& in, spinor& out, const int& block);
 
         void funcLocal(const spinor& in, spinor& out) override { 
-            std::cout << "funcLocal called for block " << blockMPI << std::endl;
+            //std::cout << "funcLocal called for block " << blockMPI << std::endl;
             D_local( in, out,blockMPI);
         }
 

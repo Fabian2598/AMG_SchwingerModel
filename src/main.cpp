@@ -89,8 +89,25 @@ int main(int argc, char **argv) {
     Level Level0(level0, GConf.Conf);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    //Check D_local implementation 
-    Level0.sap_l.SAP(rhs,x,iter,SAPV::sap_blocks_per_proc,true);
+    std::cout << "Testing new implementation " << std::endl;
+    //Check D_local implementation
+    spinor xtest(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],0)); //in 
+    Level0.sap_l.SAP(rhs,xtest,iter,SAPV::sap_blocks_per_proc,true);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (rank==0){
+        //Checking that the results are the same
+        for(int n=0; n<LevelV::Nsites[level0]; n++){
+        for(int alf=0; alf<LevelV::DOF[level0]; alf++){
+            if(std::abs(xtest[n][alf] - x[n][alf]) > 1e-8){
+                std::cout << "Error in SAP implementation at level " << level0 << " at site " << n << " and DOF " << alf << std::endl;
+                std::cout << "xtest = " << xtest[n][alf] << ", x = " << x[n][alf] << std::endl;
+                exit(1);
+            }
+        }
+        }
+        std::cout << "Previous SAP implementation coincides with the new one " << std::endl;
+    }
 
     MPI_Finalize();
 
