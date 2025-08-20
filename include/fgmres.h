@@ -90,7 +90,7 @@ class FGMRES{
     void solve_upper_triangular(const c_matrix& A, const c_vector& b, const int& n, c_vector& out);
 
     void setZeros(){
-        //We set all these to zero to avoid memory issues
+        //We set all these to zero when calling the method several times
         for(int i = 0; i < m + 1; i++) {
             gm[i] = 0.0; //gm vector
             for(int j = 0; j < dim1; j++) {

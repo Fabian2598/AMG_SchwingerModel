@@ -124,12 +124,6 @@ extern std::vector<std::vector<int>>LeftPB; //Left periodic boundary
 extern std::vector<std::vector<c_double>>SignR; //Right fermionic boundary
 extern std::vector<std::vector<c_double>>SignL; //Left fermionic boundary
 
-//Indexes for the SAP blocks
-extern std::vector<std::vector<int>> SAP_Blocks; //SAP_Blocks[number_of_block][vectorized_coordinate of the lattice point]
-//The vectorization does not take into account the spin index, since both spin indices are in the same block.
-extern std::vector<int> SAP_RedBlocks; //Block index for the red blocks
-extern std::vector<int> SAP_BlackBlocks; //Block index for the black blocks
-
 extern std::vector<std::vector<c_double>>D_TEMP;
 
 extern std::vector<std::vector<int>> LatticeBlocks;

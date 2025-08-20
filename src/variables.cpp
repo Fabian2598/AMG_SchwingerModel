@@ -30,12 +30,6 @@ std::vector<std::vector<int>>RightPB = std::vector<std::vector<int>>(LV::Ntot, s
 std::vector<std::vector<c_double>>SignL =std::vector<std::vector<c_double>>(LV::Ntot, std::vector<c_double>(2,0)); //SignL[x][t][mu]
 std::vector<std::vector<c_double>>SignR = std::vector<std::vector<c_double>>(LV::Ntot, std::vector<c_double>(2,0)); ////SignR[x][t][mu]
 
-//--SAP blocks--//
-std::vector<std::vector<int>>SAP_Blocks = std::vector<std::vector<int>>(SAPV::sap_block_x*SAPV::sap_block_t, 
-    std::vector<int>(SAPV::sap_x_elements*SAPV::sap_t_elements, 0));
-std::vector<int> SAP_RedBlocks = std::vector<int>(SAPV::sap_coloring_blocks, 0); //Red blocks
-std::vector<int> SAP_BlackBlocks = std::vector<int>(SAPV::sap_coloring_blocks, 0); //Black blocks
-
 namespace mass{
     double m0 = 0; //Default mass
 }

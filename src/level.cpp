@@ -241,10 +241,7 @@ void Level::D_operator(const spinor& v, spinor& out){
 		out[x][2*c+alf] = (mass::m0+2)*v[x][2*c+alf];
 	for(int bet = 0; bet<2; bet++){
 	for(int b = 0; b<colors; b++){
-		//For this term the antiperiodic sign is considered in G1
 		out[x][2*c+alf] -= G1[getG1index(x,alf,bet,c,b)] * v[x][2*b+bet];
-
-		//For the other terms we write the antiperiodic sign here, not in the coefficients
 		for(int mu:{0,1}){
 			out[x][2*c+alf] -= ( G2[getG2G3index(x,alf,bet,c,b,mu)] * SignR_l[level][x][mu] * v[RightPB_l[level][x][mu]][2*b+bet]
 							+ G3[getG2G3index(x,alf,bet,c,b,mu)] * SignL_l[level][x][mu] * v[LeftPB_l[level][x][mu]][2*b+bet] );
