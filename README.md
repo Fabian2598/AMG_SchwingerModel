@@ -17,5 +17,8 @@ Work in progress ...
     - [x] Rewrite method for the Level0 and check that it coincide with the previous implementation
     - [x] Test the method for the coarser levels. Compare the convergence of the solution with GMRES and check that the inversion is working properly.
 - [ ] Integrate everything in a V-cycle
-- [ ] Improve performance (if needed)
-- [ ] Implement an K-cycle
+    -[ ] Start by writing the set-up phase, during which it will be necessary to have the V-cycle.
+- [ ] Improve performance (if needed).
+- [ ] Use the V-cycle as preconditioner and compare with the two-grid method.
+- [ ] Implement a K-cycle.
+- [ ] Compare the two-grid, the K-cycle and the V-cycle used as preconditioenrs for the FGMRES and as stand-alone solvers.

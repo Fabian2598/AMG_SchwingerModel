@@ -158,7 +158,7 @@ void AMG::setUpPhase(const double& eps,const int& Nit) {
 		}
 	}
 	*/
-	//level_l[0].makeDirac(); //Build Dirac operator for the finest level
+
 	//Improving the test vectors by approximately solving the linear system D test_vectors[i] = rhs 
 	/*
 	for(int l=0; l<AMGV::levels-1; l++){
