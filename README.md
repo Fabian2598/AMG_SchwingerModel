@@ -15,8 +15,7 @@ Work in progress ...
 - [x] Implement coarse grid matrix 
 - [ ] Implement SAP for each level
     - [x] Rewrite method for the Level0 and check that it coincide with the previous implementation
-    - [ ] Test the method for the coarser levels. Compare the convergence of the solution with GMRES and check that the inversion
-    is working properly.
+    - [x] Test the method for the coarser levels. Compare the convergence of the solution with GMRES and check that the inversion is working properly.
 - [ ] Integrate everything in a V-cycle
 - [ ] Improve performance (if needed)
 - [ ] Implement an K-cycle

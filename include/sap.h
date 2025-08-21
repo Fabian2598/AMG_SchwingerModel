@@ -68,9 +68,13 @@ public:
         x_elements = Nx/block_x, t_elements = Nt/block_t; //Number of elements in the x and t direction
         NBlocks = Block_x * Block_t; //Number of Schwarz blocks
         lattice_sites_per_block = x_elements * t_elements; //Number of lattice points in the block
-        variables_per_block = 2 * lattice_sites_per_block; //Number of variables in the block 
-        coloring_blocks = NBlocks/2; //Number of red or black blocks
+        variables_per_block = spins * colors * lattice_sites_per_block; //Number of variables in the block 
+        coloring_blocks = ( NBlocks != 1) ? NBlocks/2: 1; //Number of red or black blocks
         Ntot = Nt * Nx; //Total number of lattice points This is equal to dim1 ...
+
+        std::cout << "SAP_C initialized with " << NBlocks << " blocks, each with " << lattice_sites_per_block << " lattice points." << std::endl;
+        std::cout << "x_elements: " << x_elements << ", t_elements: " << t_elements << std::endl;
+        std::cout << "variables_per_block: " << variables_per_block << ", coloring_blocks: " << coloring_blocks << std::endl;
 
         Blocks = std::vector<std::vector<int>>(block_x*block_t, std::vector<int>(x_elements*t_elements, 0));
         RedBlocks = std::vector<int>(coloring_blocks, 0); //Red blocks

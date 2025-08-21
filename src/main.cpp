@@ -77,37 +77,18 @@ int main(int argc, char **argv) {
     //AMG amg(GConf, m0,AMGV::nu1, AMGV::nu2); 
 	//amg.setUpPhase(1,AMGV::Nit);
     //amg.initializeCoarseLinks();
+
+    //Three levels tests
+    //TestCoarseGaugeFieldsV1(GConf);
+    //checkSAPV1(GConf);
     
-    //TestCoarseGaugeFields(GConf);
-    int level0 = 0;
-    spinor rhs(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],1)); //in
-    spinor x(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],0)); //in
-    int iter = 100;
-    MPI_Barrier(MPI_COMM_WORLD);
-    sap.SAP(rhs,x,iter,SAPV::sap_blocks_per_proc,true);
+    //Four levels tests
+    TestCoarseGaugeFieldsV2(GConf);
+    checkSAPV2(GConf);
 
-    Level Level0(level0, GConf.Conf);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    std::cout << "Testing new implementation " << std::endl;
-    //Check D_local implementation
-    spinor xtest(LevelV::Nsites[level0],c_vector(LevelV::DOF[level0],0)); //in 
-    Level0.sap_l.SAP(rhs,xtest,iter,SAPV::sap_blocks_per_proc,true);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    if (rank==0){
-        //Checking that the results are the same
-        for(int n=0; n<LevelV::Nsites[level0]; n++){
-        for(int alf=0; alf<LevelV::DOF[level0]; alf++){
-            if(std::abs(xtest[n][alf] - x[n][alf]) > 1e-8){
-                std::cout << "Error in SAP implementation at level " << level0 << " at site " << n << " and DOF " << alf << std::endl;
-                std::cout << "xtest = " << xtest[n][alf] << ", x = " << x[n][alf] << std::endl;
-                exit(1);
-            }
-        }
-        }
-        std::cout << "Previous SAP implementation coincides with the new one " << std::endl;
-    }
+
 
     MPI_Finalize();
 

@@ -7,6 +7,6 @@
 #define NTEST 10
 #define SAP_BLOCK_X 4
 #define SAP_BLOCK_T 4
-#define LEVELS 3
+#define LEVELS 4
 
 #endif

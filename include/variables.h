@@ -92,6 +92,10 @@ namespace LevelV{
     extern int SAP_Block_x[AMGV::levels]; //Number of SAP blocks on the x direction 
     extern int SAP_Block_t[AMGV::levels]; //Number of SAP blocks on the y direction
     //For the coarsest level we could define a blocking or just ignore this.
+
+    extern int GMRES_restart_len[AMGV::levels];
+    extern int GMRES_restarts[AMGV::levels];
+    extern double GMRES_tol[AMGV::levels];
 }
 
 //--------------Parameters for FGMRES--------------//

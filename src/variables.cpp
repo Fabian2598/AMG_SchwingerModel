@@ -47,6 +47,10 @@ namespace LevelV{
     int Colors[AMGV::levels];
     int SAP_Block_x[AMGV::levels];
     int SAP_Block_t[AMGV::levels];
+
+    int GMRES_restart_len[AMGV::levels];
+    int GMRES_restarts[AMGV::levels];
+    double GMRES_tol[AMGV::levels];
 };
 
 
