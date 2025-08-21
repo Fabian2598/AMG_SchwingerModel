@@ -72,15 +72,14 @@ public:
         coloring_blocks = ( NBlocks != 1) ? NBlocks/2: 1; //Number of red or black blocks
         Ntot = Nt * Nx; //Total number of lattice points This is equal to dim1 ...
 
-        std::cout << "SAP_C initialized with " << NBlocks << " blocks, each with " << lattice_sites_per_block << " lattice points." << std::endl;
-        std::cout << "x_elements: " << x_elements << ", t_elements: " << t_elements << std::endl;
-        std::cout << "variables_per_block: " << variables_per_block << ", coloring_blocks: " << coloring_blocks << std::endl;
+        //std::cout << "SAP_C initialized with " << NBlocks << " blocks, each with " << lattice_sites_per_block << " lattice points." << std::endl;
+        //std::cout << "x_elements: " << x_elements << ", t_elements: " << t_elements << std::endl;
+        //std::cout << "variables_per_block: " << variables_per_block << ", coloring_blocks: " << coloring_blocks << std::endl;
 
         Blocks = std::vector<std::vector<int>>(block_x*block_t, std::vector<int>(x_elements*t_elements, 0));
         RedBlocks = std::vector<int>(coloring_blocks, 0); //Red blocks
         BlackBlocks = std::vector<int>(coloring_blocks, 0); //Black blocks       
         SchwarzBlocks(); //Initialize the Schwarz blocks
-        //std::cout << "Schwarz blocks initialized with " << NBlocks << " blocks, each with " << lattice_sites_per_block << " lattice points." << std::endl;
      };
 
     /*

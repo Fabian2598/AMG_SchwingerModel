@@ -13,7 +13,7 @@ Work in progress ...
     - [x] Check that $P^\dagger D P$ coincides with my coarse gauge implementation for all levels 
     - [x] Test the implementation for several levels (Tested up to four levels)
 - [x] Implement coarse grid matrix 
-- [ ] Implement SAP for each level
+- [x] Implement SAP for each level
     - [x] Rewrite method for the Level0 and check that it coincide with the previous implementation
     - [x] Test the method for the coarser levels. Compare the convergence of the solution with GMRES and check that the inversion is working properly.
 - [ ] Integrate everything in a V-cycle

@@ -76,6 +76,8 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
     //Divide SAP_RedBlocks among processes
     int start = rank * blocks_per_proc;
     int end = std::min(start + blocks_per_proc, coloring_blocks);
+    //std::cout << "hello from rank " << rank << " with coloring blocks " << coloring_blocks << std::endl;
+    //std::cout << "start  " << start << "   end" << end << std::endl;
 
     spinor temp(lattice_sites_per_block, c_vector(spins*colors, 0)); 
     spinor r(Ntot, c_vector(spins*colors, 0)); //residual
@@ -92,6 +94,10 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
         for(int n = 0; n < Ntot * spins * colors; n++) {
             local_buffer[n] = 0.0; //Initialize local_buffer to zero
         }
+        //For the coarser levels, when the number of SAP blocks is smaller than for the finest level, notice that
+        //if we consider all the ranks from the finest level, we will have cases where start>end, i.e. they don't enter
+        //in the for loop. This is convenient, because even though every rank will access this function, only the ranks that
+        //satisfy start < end will play a role here. I.e. we ignore those ranks where rank>NBlocks 
         for (int b = start; b < end; b++) {
             int block = RedBlocks[b];
             I_D_B_1_It(r, temp, block);

@@ -668,11 +668,18 @@ inline void checkSAPV1(const GaugeConf& GConf){
 }
 
 inline void checkSAPV2(const GaugeConf& GConf){
+    //lattice size 64 x 64
     //parameters.dat
     //level, xblock, tblock, ntest, sapXblock, sapTblock
     //0 8 8 10 4 4
     //1 4 4 5 4 4
     //2 2 2 7 2 2  
+
+
+    //We also tried
+    //0 16 16 10 4 4
+    //1 8 8 5 4 4
+    //2 4 4 7 4 4  
 
     int rank, size; 
     MPI_Comm_size(MPI_COMM_WORLD, &size);

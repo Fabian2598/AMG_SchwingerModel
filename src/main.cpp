@@ -83,12 +83,8 @@ int main(int argc, char **argv) {
     //checkSAPV1(GConf);
     
     //Four levels tests
-    TestCoarseGaugeFieldsV2(GConf);
-    checkSAPV2(GConf);
-
-
-
-
+    //TestCoarseGaugeFieldsV2(GConf);
+    //checkSAPV2(GConf);
 
     MPI_Finalize();
 
