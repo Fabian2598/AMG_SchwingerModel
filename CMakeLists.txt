@@ -12,6 +12,7 @@ set(SRC_FILES
     src/conjugate_gradient.cpp  #Conjugate gradient for solving normal equations
     src/sap.cpp                 #Schwarz alternating method
     src/amg.cpp                 #Two-grid implementation 
+    src/AMG.cpp                 #Multilevel method
     src/main.cpp                #Main program
     src/level.cpp
     src/fgmres.cpp              #Flexible GMRES solver

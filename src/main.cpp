@@ -9,7 +9,7 @@
 #include "conjugate_gradient.h"
 #include "boundary.h"
 #include "amg.h"
-#include "level.h"
+#include "AMG.h"
 #include "mpi.h"
 
 
@@ -85,6 +85,16 @@ int main(int argc, char **argv) {
     //Four levels tests
     //TestCoarseGaugeFieldsV2(GConf);
     //checkSAPV2(GConf);
+
+    spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
+    spinor x(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+
+    AlgebraicMG AMG(GConf, m0,AMGV::nu1, AMGV::nu2);
+    AMG.setUpPhase(1,1);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    //AMG.testSetUp();
+    AMG.applyMultilevel(1, rhs,x,1e-10,true);
 
     MPI_Finalize();
 
