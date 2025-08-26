@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     boundary();
 
     //double m0 = -0.5;
-    mass::m0 = -0.18840579710144945;
+    mass::m0 = -0.5;//-0.18840579710144945;
     double m0 = mass::m0; 
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -90,13 +90,28 @@ int main(int argc, char **argv) {
     spinor x(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
     AlgebraicMG AMG(GConf, m0,AMGV::nu1, AMGV::nu2);
-    AMG.setUpPhase(1,1);
+    AMG.setUpPhase(1,3);
     MPI_Barrier(MPI_COMM_WORLD);
 
     //AMG.testSetUp();
-    AMG.applyMultilevel(1, rhs,x,1e-10,true);
+    AMG.applyMultilevel(50, rhs,x,1e-10,true);
+    spinor Dphi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    D_phi(GConf.Conf,x,Dphi,m0);
+    //Check if D_phi and rhs are equal
+    for(int n=0; n<LevelV::Nsites[0]; n++){
+        for(int c=0; c<LevelV::DOF[0]; c++){
+            if (std::abs(Dphi[n][c]-rhs[n][c])>1e-8){
+                std::cout << "Error: D_phi and rhs are not equal at site " << n << " component " << c << std::endl;
+                std::cout << "D_phi: " << Dphi[n][c] << " rhs: " << rhs[n][c] << std::endl;
+                exit(1);
+            }
+        }
+    }
+    
 
     MPI_Finalize();
 
     return 0;
 }
+
+

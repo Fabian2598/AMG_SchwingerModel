@@ -34,32 +34,27 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
 		levels[l]->makeCoarseLinks(*levels[l+1]); 
 	}
 
-	/*
+	//Adaptivity part
     if (rank == 0)std::cout << "Improving interpolator" << std::endl;
-
-    int nu = 1; double tolerance = 1e-10;
-    for (int it = 0; it < Nit; it++) {
+    
+	for (int it = 0; it < Nit; it++) {
 		if (rank == 0)std::cout << "****** Bootstrap iteration " << it << " ******" << std::endl;
+		//for (int l = LevelV::maxLevel - 1; l=0; l--){
 		for (int l = 0; l<AMGV::levels-1; l++){
-		spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
-		for (int i = 0; i < LevelV::Ntest[l]; i++) {
-			//Number of cycles for each test vector 
-			rhs = test_vectors[i];
-			V_cycle(nu,tolerance,rhs,rhs,levels[l]->test_vectors[i],false);
-			TwoGrid(two_grid_iter,tolerance, rhs,rhs, test_vectors[i], false); 
-			//I have to call a function that applies the method for the other levels.
-			//For instance, for l=0 it will apply the full method.
-			//For l=1 it will only apply the method for the levels l>1 
-			//For l=2 ""                                        "" l>2  
-		}
-		//Build the interpolator between level l and l+1
-		levels[l]->interpolator_columns = levels[l].test_vectors; 
-		levels[l]->orthonormalize(); 
-		levels[l]->makeCoarseLinks(levels[l+1]); //Make coarse gauge links which define the operator D for the next level
+			spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
+			for (int i = 0; i < LevelV::Ntest[l]; i++) {
+				rhs = levels[l]->test_vectors[i];
+				v_cycle(l, rhs, levels[l]->test_vectors[i]);
+			}
+			//Build the interpolator between level l and l+1
+			levels[l]->interpolator_columns = levels[l]->test_vectors; 
+			levels[l]->orthonormalize(); 
+			levels[l]->makeCoarseLinks(*levels[l+1]); //Make coarse gauge links which define the operator D for the next level
 		}
 	}
-	*/
+	
     if (rank == 0)std::cout << "Set-up phase finished" << std::endl;
+	
 	
     
 	
@@ -116,25 +111,12 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		spinor psi_l_1(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],0)); //eta_{l+1}
 		spinor P_psi(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0));  //P_l psi_{l+1}
 
-		//Intial guess equal to zero ...
-		for(int n = 0;n < LevelV::Nsites[l]; n++){
-		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
-			psi_l[n][dof] = 0.0;
-		}
-		}
-
 		//Pre - smoothing
-		if (AMGV::nu1 > 0){
-			levels[l]->D_operator(psi_l,Dpsi); //Dpsi = D_l psi_l
-			for(int n = 0;n < LevelV::Nsites[l]; n++){
-			for(int dof = 0; dof < LevelV::DOF[l]; dof++){
-				r_l[n][dof] = eta_l[n][dof] - Dpsi[n][dof]; //r_l = eta_l - D_l psi_l
-			}
-			}
-			//for the first level the right hand side should always be eta_l ... 
-			levels[l]->sap_l.SAP(r_l,psi_l,AMGV::nu1,SAPV::sap_blocks_per_proc,false); //Pre-smooth with nu1 iterations
-		}
+		if (AMGV::nu1 > 0)
+			levels[l]->sap_l.SAP(eta_l,psi_l,AMGV::nu1,SAPV::sap_blocks_per_proc,false); 
+		
 
+		//Coarse grid correction 
 		levels[l]->D_operator(psi_l,Dpsi); 
 		for(int n = 0;n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
@@ -143,6 +125,7 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		}
 		levels[l]->Pt_v(r_l,eta_l_1); //eta_{l+1} = P^H (eta_l - D_l psi_l)
 		this->v_cycle(l+1,eta_l_1,psi_l_1); //psi_{l+1} = V-Cycle(l+1,eta_{l+1})
+
 		levels[l]->P_v(psi_l_1,P_psi); //P_psi = P_l psi_{l+1}
 		for(int n = 0;n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
@@ -151,15 +134,9 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		}
 
 		//Post - smoothing
-		if (AMGV::nu2 > 0){
-			levels[l]->D_operator(psi_l,Dpsi); //Dx = D_l out
-			for(int n = 0;n < LevelV::Nsites[l]; n++){
-			for(int dof = 0; dof < LevelV::DOF[l]; dof++){
-				r_l[n][dof] = eta_l[n][dof] - Dpsi[n][dof]; //r_l = eta_l - D_l psi_l
-			}
-			}
-			levels[l]->sap_l.SAP(r_l,psi_l,AMGV::nu2,SAPV::sap_blocks_per_proc,false); 
-		}
+		if (AMGV::nu2 > 0)
+			levels[l]->sap_l.SAP(eta_l,psi_l,AMGV::nu2,SAPV::sap_blocks_per_proc,false); 
+		
 
 	}	
 

@@ -37,9 +37,9 @@ public:
     GaugeConf GConf;
 	double m0; 
 	int nu1, nu2; 
-    std::vector<Level*> levels; //If i try to use a vector of objects I will run out of memory
+    std::vector<Level*> levels; //If I try to use a vector of objects I will run out of memory
 
-    //Checks orthonormalization 
+    //Checks orthonormalization and that P^H D P = Dc
     void testSetUp();
 
     // psi_l = V_cycle(l,eta_l)
