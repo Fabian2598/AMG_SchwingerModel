@@ -125,7 +125,7 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		}
 		}
 		levels[l]->Pt_v(r_l,eta_l_1); //eta_{l+1} = P^H (eta_l - D_l psi_l)
-		this->v_cycle(l+1,eta_l_1,psi_l_1); //psi_{l+1} = V-Cycle(l+1,eta_{l+1})
+		v_cycle(l+1,eta_l_1,psi_l_1); //psi_{l+1} = V-Cycle(l+1,eta_{l+1})
 
 		levels[l]->P_v(psi_l_1,P_psi); //P_psi = P_l psi_{l+1}
 		for(int n = 0;n < LevelV::Nsites[l]; n++){
@@ -170,7 +170,7 @@ void AlgebraicMG::k_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		}
 		}
 		levels[l]->Pt_v(r_l,eta_l_1); //eta_{l+1} = P^H (eta_l - D_l psi_l)
-		this->fgmres_k_cycle_l[l+1]->fgmres(eta_l_1,eta_l_1,psi_l_1,false);
+		fgmres_k_cycle_l[l+1]->fgmres(eta_l_1,eta_l_1,psi_l_1,false);
 		//psi_{l+1} = fgmres(l+1,eta_{l+1}) with K-cycle(l+1,rhs) as preconditioner
 
 		levels[l]->P_v(psi_l_1,P_psi); //P_psi = P_l psi_{l+1}
@@ -212,13 +212,13 @@ void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,c
 			err = sqrt(std::real(dot(r, r)));
         	if (err < tol* norm) {
             	if (print_message == true) {
-            		std::cout << "V-cycle converged in " << i+1 << " iterations" << " Error " << err << std::endl;
+            		std::cout << "V-cycle converged in " << i+1 << " cycles" << " Error " << err << std::endl;
             	}
             	return ;
         	} 
 		}
 		if (print_message == true) 
-        	std::cout << "V-cycle did not converge in " << it << " iterations" << " Error " << err << std::endl;
+        	std::cout << "V-cycle did not converge in " << it << " cycles" << " Error " << err << std::endl;
 	}
 
 	else if (AMGV::cycle == 1){
@@ -234,15 +234,12 @@ void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,c
 			err = sqrt(std::real(dot(r, r)));
         	if (err < tol* norm) {
             	if (print_message == true) {
-            		std::cout << "K-cycle converged in " << i+1 << " iterations" << " Error " << err << std::endl;
+            		std::cout << "K-cycle converged in " << i+1 << " cycles" << " Error " << err << std::endl;
             	}
             	return ;
         	} 
 		}
 		if (print_message == true) 
-        	std::cout << "K-cycle did not converge in " << it << " iterations" << " Error " << err << std::endl;
+        	std::cout << "K-cycle did not converge in " << it << " cycles" << " Error " << err << std::endl;
 	}
-
-	//If cycle = 1 --> K-cycle
-
 }

@@ -17,7 +17,7 @@ public:
     class FGMRES_k_cycle : public FGMRES {
 	public:
     	FGMRES_k_cycle(const int& dim1, const int& dim2, const int& m, const int& restarts, const double& tol, AlgebraicMG* parent, int l) : 
-		FGMRES(dim1, dim2, m, restarts, tol), parent(parent) {}
+		FGMRES(dim1, dim2, m, restarts, tol), parent(parent), l(l) {}
     
     	~FGMRES_k_cycle() { };
     
@@ -42,7 +42,7 @@ public:
     	for(int l = 0; l<AMGV::levels; l++){
         	Level* level = new Level(l,GConf.Conf);
         	levels.push_back(level);
-
+			//We don't really need this FGMRES for the coarsest level and the finest level
 			FGMRES_k_cycle* fgmres = new FGMRES_k_cycle(LevelV::Nsites[l], 
 				LevelV::DOF[l], 
 				AMGV::fgmres_k_cycle_restart_length, 
@@ -58,7 +58,6 @@ public:
         	levels[l]->makeAggregates();
 		}
     }    
-    //std::cout << "Lattice blocks and aggregates initialized" << std::endl;
     	
 
     //Pages 84 and 85 of Rottmann's thesis explain how to implement this ...
@@ -79,7 +78,7 @@ public:
 	// psi_l = K_cycle(l,eta_l)
 	void k_cycle(const int& l, const spinor& eta_l, spinor& psi_l);
 
-    //Calls any cycle (for the moment only v)
+    //Calls K or V-cycle depending on the value of AMGV::cycle
     void applyMultilevel(const int& it, const spinor&rhs, spinor& out,const double tol,const bool print_message);
     
 

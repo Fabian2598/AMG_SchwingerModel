@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     boundary();
 
     //double m0 = -0.5;
-    mass::m0 = -0.5;//-0.18840579710144945;
+    mass::m0 = -0.58;//-0.18840579710144945;
     double m0 = mass::m0; 
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -88,6 +88,7 @@ int main(int argc, char **argv) {
 
     spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
     spinor x(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor xK(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
     AlgebraicMG AMG(GConf, m0,AMGV::nu1, AMGV::nu2);
     AMG.setUpPhase(1,3);
@@ -96,6 +97,12 @@ int main(int argc, char **argv) {
     //AMG.testSetUp();
     AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
     AMG.applyMultilevel(50, rhs,x,1e-10,true);
+
+    AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
+    AMG.applyMultilevel(50, rhs,xK,1e-10,true);
+
+
+
     spinor Dphi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     D_phi(GConf.Conf,x,Dphi,m0);
     //Check if D_phi and rhs are equal

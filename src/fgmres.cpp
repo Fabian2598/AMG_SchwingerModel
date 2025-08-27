@@ -19,7 +19,6 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
         //-----Arnoldi process to build the Krylov basis and the Hessenberg matrix-----//
         for (int j = 0; j < m; j++) {
             preconditioner(VmT[j], ZmT[j]); //ZmT[j] = M^-1 VmT[j]
-        
             func(ZmT[j],w); 
             //Gram-Schmidt process to orthogonalize the vectors
             for (int i = 0; i <= j; i++) {
