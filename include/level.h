@@ -82,7 +82,7 @@ public:
     	}
 		//No preconditioning for the coarsest level
 		void preconditioner(const spinor& in, spinor& out) override {
-        out = std::move(in); //Identity operation
+            out = std::move(in); //Identity operation
 		}
 	};
 

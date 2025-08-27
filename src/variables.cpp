@@ -80,9 +80,16 @@ namespace AMGV {
     int Nit = 1; //Number of iterations for improving the interpolator
 
     bool SetUpDone = false; //Set to true when the setup is done
+
+    //Parameters for FGMRES used in the k-cycle
+    int fgmres_k_cycle_restart_length = 5;
+    int fgmres_k_cycle_restarts = 2;
+    double fgmres_k_cycle_tol = 0.1;
+
+    int cycle = 0; //Cycling stratey. Cycle = 0 -> V-cycle, = 1 --> K-cycle
 }
 
-//--------------Parameters for FGMRES--------------//
+//--------------Parameters for outer FGMRES solver--------------//
 namespace FGMRESV {
     double fgmres_tolerance = 1e-10; //Tolerance for FGMRES
     int fgmres_restart_length = 20; //Restart length for FGMRES

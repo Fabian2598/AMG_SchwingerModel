@@ -8,7 +8,7 @@
 #include "bi_cgstab.h"
 #include "conjugate_gradient.h"
 #include "boundary.h"
-#include "amg.h"
+#include "twoGrid.h"
 #include "AMG.h"
 #include "mpi.h"
 
@@ -94,6 +94,7 @@ int main(int argc, char **argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 
     //AMG.testSetUp();
+    AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
     AMG.applyMultilevel(50, rhs,x,1e-10,true);
     spinor Dphi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     D_phi(GConf.Conf,x,Dphi,m0);

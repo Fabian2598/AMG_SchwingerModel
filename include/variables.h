@@ -72,6 +72,10 @@ namespace AMGV{
     extern int nu2; //Post-smoothing iterations
     extern int Nit; //Number of iterations for improving the interpolator 
     extern bool SetUpDone; 
+    extern int fgmres_k_cycle_restart_length;
+    extern int fgmres_k_cycle_restarts;
+    extern double fgmres_k_cycle_tol;
+    extern int cycle; //Cycling stratey. Cycle = 0 -> V-cycle, = 1 --> K-cycle
 }
 
 namespace LevelV{
