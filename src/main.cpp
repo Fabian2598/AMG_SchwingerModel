@@ -9,7 +9,7 @@
 #include "conjugate_gradient.h"
 #include "boundary.h"
 #include "twoGrid.h"
-#include "AMG.h"
+#include "amg.h"
 #include "mpi.h"
 
 
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 
 
     spinor Dphi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    D_phi(GConf.Conf,x,Dphi,m0);
+    D_phi(GConf.Conf,xK,Dphi,m0);
     //Check if D_phi and rhs are equal
     for(int n=0; n<LevelV::Nsites[0]; n++){
         for(int c=0; c<LevelV::DOF[0]; c++){

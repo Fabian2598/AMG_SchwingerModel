@@ -1,4 +1,4 @@
-#include "AMG.h"
+#include "amg.h"
 
 void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
     
