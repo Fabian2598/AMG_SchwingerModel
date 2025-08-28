@@ -116,7 +116,7 @@ public:
 
         //Used for the orthonormalization of the test vectors
         v_chopped = std::vector<spinor>(Ntest*Nagg, spinor(Nsites, c_vector(DOF,0))); //For orthonormalization
-        
+ 
         //For level = 0 DOF[level] = 2
         //For level = 1 DOF[level] = 2 * LevelV::Ntest[level-1] = 2 * LevelV::Colors[level]
         Agg = new int[NBlocks * DOF * sites_per_block]; 

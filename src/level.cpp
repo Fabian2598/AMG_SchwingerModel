@@ -125,14 +125,14 @@ void Level::makeDirac(){
 }
 
 void Level::orthonormalize(){
-	/*
-	Local orthonormalization of the test vectors
 	
-	Each test vector is chopped into the Nagg aggregates, which yields Ntest*Nagg columns for the interpolator.
-	Each column is orthonormalized with respect to the others that belong to the same aggregate.
-	This follows the steps from Section 3.1 of A. Frommer et al "Adaptive Aggregation-Based Domain Decomposition 
-	Multigrid for the Lattice Wilson-Dirac Operator", SIAM, 36 (2014).
-	*/
+	//Local orthonormalization of the test vectors
+	
+	//Each test vector is chopped into the Nagg aggregates, which yields Ntest*Nagg columns for the interpolator.
+	//Each column is orthonormalized with respect to the others that belong to the same aggregate.
+	//This follows the steps from Section 3.1 of A. Frommer et al "Adaptive Aggregation-Based Domain Decomposition 
+	//Multigrid for the Lattice Wilson-Dirac Operator", SIAM, 36 (2014).
+	
 
 	//Getting the columns of the interpolator for the orthonormalization
 	
@@ -197,7 +197,8 @@ void Level::orthonormalize(){
 
 
 
-}; 
+}
+
 
 void Level::checkOrthogonality() {
 	//Check orthogonality of the test vectors
@@ -441,3 +442,67 @@ void Level::SAP_level_l::D_local(const spinor& in, spinor& out, const int& block
 
 
 }
+
+
+
+/*
+void Level::orthonormalize(){
+
+	//Getting the columns of the interpolator for the orthonormalization
+	
+	spinor e_i(NBlocks, c_vector(2*Ntest,0));
+	int x, s, c, a; //block, spin and color
+	std::vector<spinor> interpolator_columns_copy(Ntest,spinor( Nsites, c_vector (DOF,0))); 
+	//Orthonormalization by applying Gram-Schmidt
+	c_double proj; 
+	for (int i = 0; i < Nagg; i++) {
+		spinor v1(Nsites,c_vector(DOF,0)); 
+		s = i % Nagg; x = s / 2; //spin, lattice block
+		for (int nt = 0; nt < Ntest; nt++) {
+			e_i[x][2*nt+s] = 1.0;
+			P_v(e_i,v1); //Columns of the interpolator
+			e_i[x][2*nt+s] = 0.0;
+			for (int j = 0; j < nt; j++) {
+				spinor v2(Nsites,c_vector(DOF,0));
+				e_i[x][2*j+s] = 1.0;
+				P_v(e_i,v2); //Columns of the interpolator
+				e_i[x][2*j+s] = 0.0;
+				proj = 0;//dot(v_chopped[nt*Nagg+i], v_chopped[j*Nagg+i]);			
+				for (int n = 0; n < Nsites; n++) {
+        			for (int alf = 0; alf < DOF; alf++) {
+						proj += v1[n][alf] * std::conj(v2[n][alf]);
+            			//proj += v_chopped[nt*Nagg+i][n][alf] * std::conj(v_chopped[j*Nagg+i][n][alf]);
+        			}
+    			}
+
+				for(int n=0; n<Nsites; n++){
+					for(int alf=0; alf<DOF; alf++){
+						//v_chopped[nt*Nagg+i][n][alf] = v_chopped[nt*Nagg+i][n][alf] - proj * v_chopped[j*Nagg+i][n][alf];
+						v1[n][alf] -= proj * v2[n][alf];
+					}
+				}
+			}
+			//normalize(v_chopped[nt*Nagg+i]);
+			normalize(v1);
+			
+			for(int n = 0; n < Nsites; n++){
+				for(int alf=0; alf<DOF; alf++){
+					interpolator_columns_copy[nt][n][alf] += v1[n][alf];
+				}
+			}
+			
+
+		}
+	}
+
+	for(int nt = 0; nt < Ntest; nt++){
+		for(int n = 0; n < Nsites; n++){
+			for(int alf=0; alf<DOF; alf++){
+				interpolator_columns[nt][n][alf] = interpolator_columns_copy[nt][n][alf];
+			}
+		}
+	}
+ 	
+}
+*/
+ 
