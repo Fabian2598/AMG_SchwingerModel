@@ -6,9 +6,9 @@
 
 /*
 	FGMRES 
-    dim1: dimension of the first index of the spinor
-    dim2: dimension of the second index of the spinor
-    m: restart length
+    dim1: number of lattice sites
+    dim2: number of degrees of freedom per site
+    m: restart length (Krylov space dimension)
     restarts: number of restarts
     tol: tolerance of the solver
 

@@ -311,21 +311,6 @@ void Level::Pt_v(const spinor& v,spinor& out) {
 
 }
 
-
-void Level::setUp(){
-	srand(19);
-	for (int i = 0; i < Ntest; i++) {
-		for (int n = 0; n < Nsites; n++) {
-			for (int dof = 0; dof < DOF; dof++) {
-				interpolator_columns[i][n][dof] = RandomU1();
-			}
-		}
-	}
-
-	orthonormalize();
-}
-
-
 /*
 	Make coarse gauge links. They will be used in the next level as G1, G2 and G3.
 */
@@ -390,6 +375,7 @@ void Level::makeCoarseLinks(Level& next_level){
 	
 }
 
+//Local Dc used for SAP
 void Level::SAP_level_l::D_local(const spinor& in, spinor& out, const int& block){
 
 	int RightPB_0, blockRPB_0; //Right periodic boundary in the 0-direction

@@ -3,6 +3,14 @@
 #include "variables.h"
 
 /*
+	Modulo operation
+*/
+inline int mod(int a, int b) {
+	int r = a % b;
+	return r < 0 ? r + b : r;
+}
+
+/*
 	Boundary conditions for all the levels
 	The function is only called once at the beginning of the program.
 
@@ -34,7 +42,7 @@ inline void boundary() {
 		}
 	    }
     }
-        
+
 }
 
 

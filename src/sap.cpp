@@ -76,15 +76,12 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
     //Divide SAP_RedBlocks among processes
     int start = rank * blocks_per_proc;
     int end = std::min(start + blocks_per_proc, coloring_blocks);
-    //std::cout << "hello from rank " << rank << " with coloring blocks " << coloring_blocks << std::endl;
-    //std::cout << "start  " << start << "   end" << end << std::endl;
 
     spinor temp(lattice_sites_per_block, c_vector(spins*colors, 0)); 
     spinor r(Ntot, c_vector(spins*colors, 0)); //residual
     spinor Dphi(Ntot, c_vector(spins*colors, 0)); //Temporary spinor for D x
     funcGlobal(x,Dphi);
     axpy(v,Dphi,-1.0,r); //r = v - D x
-
 
     //Prepare buffers for MPI communication
     c_vector local_buffer(Ntot * spins * colors, 0);
@@ -97,7 +94,7 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
         //For the coarser levels, when the number of SAP blocks is smaller than for the finest level, notice that
         //if we consider all the ranks from the finest level, we will have cases where start>end, i.e. they don't enter
         //in the for loop. This is convenient, because even though every rank will access this function, only the ranks that
-        //satisfy start < end will play a role here. I.e. we ignore those ranks where rank>NBlocks 
+        //satisfy start < end will play a role here. i.e. we ignore those ranks where rank>NBlocks 
         for (int b = start; b < end; b++) {
             int block = RedBlocks[b];
             I_D_B_1_It(r, temp, block);
@@ -130,8 +127,6 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
         axpy(v,Dphi,-1.0,r);
         //r = v - D_phi(U, x, m0); //r = v - D x
 
-
-        //set_zeros(local_x,Ntot,2); //Initialize local_x to zero
         for(int n = 0; n < Ntot * spins * colors; n++) {
             local_buffer[n] = 0.0; //Initialize local_buffer to zero
         }
@@ -188,6 +183,11 @@ void SAP_fine_level::D_B(const c_matrix& U, const spinor& v, spinor& x, const do
     c_vector phi_RPB_1 = c_vector(2, 0);
     c_vector phi_LPB_0 = c_vector(2, 0);
     c_vector phi_LPB_1 = c_vector(2, 0);
+
+    std::vector<std::vector<int>> &LeftPB = LeftPB_l[0];
+	std::vector<std::vector<int>> &RightPB = RightPB_l[0];
+	c_matrix &SignR = SignR_l[0];
+	c_matrix &SignL = SignL_l[0];
 
     for (int m = 0; m < lattice_sites_per_block; m++) {
 		//n = x * Nt + t

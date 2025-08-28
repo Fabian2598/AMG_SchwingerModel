@@ -1,6 +1,5 @@
 #include "gauge_conf.h"
 
-
 std::complex<double> RandomU1() {
 	double cociente = ((double) rand() / (RAND_MAX));
     double theta = 2.0*pi * cociente;

@@ -1,8 +1,7 @@
 #ifndef BI_CGSTAB_H
 #define BI_CGSTAB_H
 
-#include "dirac_operator.h"
-#include "operator_overloads.h"
+#include "lin_alg_op.h"
 #include "variables.h"
 #include <cmath>
 #include <iostream>

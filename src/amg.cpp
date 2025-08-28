@@ -65,43 +65,6 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
 
 }
 
-
-void AlgebraicMG::testSetUp(){
-	//Checking orthogonality
-    for(int l = 0; l<AMGV::levels-1;l++){
-        levels[l]->checkOrthogonality();
-    }
-
-     // Testing that P^dag D P = D_c level by level 
-    for(int l = 0; l<AMGV::levels-1;l++){
-        spinor in(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],1)); //in
-        spinor temp(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0));
-        spinor Dphi(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0));
-        spinor out(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],0)); //out
-        spinor out_v2(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],0)); //D_c
-        //P^H D P
-        levels[l]->P_v(in,temp);
-        levels[l]->D_operator(temp,Dphi);
-        levels[l]->Pt_v(Dphi,out);
-
-        levels[l+1]->D_operator(in,out_v2);
-        std::cout << "Testing level " << l+1 << std::endl;
-        for(int x = 0; x<LevelV::Nsites[l+1]; x++){
-            for(int dof = 0; dof<LevelV::DOF[l+1]; dof++){
-                if (std::abs(out[x][dof]-out_v2[x][dof]) > 1e-8 ){
-                std::cout << "[" << x << "][" << dof << "] " << "for level " << l+1 << " different" << std::endl; 
-                std::cout << out[x][dof] << "   /=    " << out_v2[x][dof] << std::endl;
-                return;
-                }
-            }
-        }
-        std::cout << "P^dag D P coincides with Dc for level " << l+1 << std::endl;
-        std::cout << out[0][0] << "   =    " << out_v2[0][0] << std::endl;
-    }
-     
-}
-
-
 void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 	if (l == LevelV::maxLevel){
 		//For the coarsest level we just use GMRES to find a solution
@@ -153,7 +116,7 @@ void AlgebraicMG::k_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		levels[l]->gmres_l.fgmres(eta_l, eta_l, psi_l, false); //psi_l = D_l^-1 eta_l 
 	}
 	else{
-		//Buffers
+		//Buffers might be useful to define them somewhere else and just set them to zero here
 		spinor Dpsi(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0)); //D_l psi_l
 		spinor r_l(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0)); //r_l = eta_l - D_l psi_l
 		spinor eta_l_1(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],0)); //eta_{l+1}
@@ -191,8 +154,6 @@ void AlgebraicMG::k_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 	}	
 
 }
-
-
 
 
 void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,const double tol,const bool print_message){
@@ -245,4 +206,69 @@ void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,c
 		if (print_message == true) 
         	std::cout << "K-cycle did not converge in " << it << " cycles" << " Error " << err << std::endl;
 	}
+}
+
+
+void AlgebraicMG::testSetUp(){
+	//Checking orthogonality
+    for(int l = 0; l<AMGV::levels-1;l++){
+        levels[l]->checkOrthogonality();
+    }
+
+     // Testing that P^dag D P = D_c level by level 
+    for(int l = 0; l<AMGV::levels-1;l++){
+        spinor in(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],1)); //in
+        spinor temp(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0));
+        spinor Dphi(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0));
+        spinor out(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],0)); //out
+        spinor out_v2(LevelV::Nsites[l+1],c_vector(LevelV::DOF[l+1],0)); //D_c
+        //P^H D P
+        levels[l]->P_v(in,temp);
+        levels[l]->D_operator(temp,Dphi);
+        levels[l]->Pt_v(Dphi,out);
+
+        levels[l+1]->D_operator(in,out_v2);
+        std::cout << "Testing level " << l+1 << std::endl;
+        for(int x = 0; x<LevelV::Nsites[l+1]; x++){
+            for(int dof = 0; dof<LevelV::DOF[l+1]; dof++){
+                if (std::abs(out[x][dof]-out_v2[x][dof]) > 1e-8 ){
+                std::cout << "[" << x << "][" << dof << "] " << "for level " << l+1 << " different" << std::endl; 
+                std::cout << out[x][dof] << "   /=    " << out_v2[x][dof] << std::endl;
+                return;
+                }
+            }
+        }
+        std::cout << "P^dag D P coincides with Dc for level " << l+1 << std::endl;
+        std::cout << out[0][0] << "   =    " << out_v2[0][0] << std::endl;
+    }
+     
+}
+
+void AlgebraicMG::testSAP(){
+    int rank, size; 
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    for(int l = 0; l<AMGV::levels-1;l++){
+    	spinor rhs(LevelV::Nsites[l],c_vector(LevelV::DOF[l],1)); 
+    	spinor x(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0)); 
+		spinor xgmres(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0)); 
+    	int iter = 100; //SAP iterations
+    	MPI_Barrier(MPI_COMM_WORLD);
+		levels[l]->sap_l.SAP(rhs,x,iter,SAPV::sap_blocks_per_proc,true); 
+    	MPI_Barrier(MPI_COMM_WORLD);
+    	levels[l]->gmres_l.fgmres(rhs,xgmres,xgmres,true);
+
+        for(int n=0; n<LevelV::Nsites[l]; n++){
+        for(int alf=0; alf<LevelV::DOF[l]; alf++){
+            if(std::abs(x[n][alf] - xgmres[n][alf]) > 1e-8){
+                std::cout << "GMRES and SAP give something different at level " << l << " at site " << n << " and DOF " << alf << std::endl;
+                std::cout << "xSAP = " << x[n][alf] << ", x = " << xgmres[n][alf] << std::endl;
+                exit(1);
+            }
+        }
+        }
+        std::cout << "GMRES and SAP solution coincide at level " << l << std::endl;
+    }
+
 }

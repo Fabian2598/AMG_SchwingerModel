@@ -4,7 +4,7 @@
 //------Class FGMRES implementation------//
 int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& print_message) { 
     setZeros();
-    int k = 0; //Iteration number (restart cycle)
+    int k = 0; //Restart cycle)
     double err;
     x = x0; //initial solution. Perhaps it is better to give a reference to avoid a copy
     func(x, Dx); //Matrix-vector operation

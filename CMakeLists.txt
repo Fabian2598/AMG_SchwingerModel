@@ -11,10 +11,9 @@ set(SRC_FILES
     src/bi_cgstab.cpp           #Bi-CGStab solver for comparison
     src/conjugate_gradient.cpp  #Conjugate gradient for solving normal equations
     src/sap.cpp                 #Schwarz alternating method
-    src/twoGrid.cpp             #Two-grid implementation 
     src/amg.cpp                 #Multilevel method
     src/main.cpp                #Main program
-    src/level.cpp
+    src/level.cpp               #Class implementation for one level
     src/fgmres.cpp              #Flexible GMRES solver
 )
 
@@ -24,30 +23,8 @@ set(NT "64") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
-set(LEVELS "4") #Number of AMG levels (Including the finest level)
+set(LEVELS "4") #Number of AMG levels (Including the finest and coarsest level)
 #-----------------------------------------------------------------------#
-
-#------------------Lattice blocks used for aggregation------------------#
-# A_j_0 = L_j x {0}, A_j_1 = L_j x {1} (Volume times Spin component)
-set(BLOCK_X "4")
-set(BLOCK_T "4")
-#N_i / BLOCK_i has to be an integer number
-#The number of aggregates is 2 * BlockX * BlockT
-#-----------------------------------------------------------------------#
-
-#-------------Lattice blocks for Schwarz alternating method-------------# 
-#The blocking does not have to the same as for the aggregation
-set(SAP_BLOCK_X "4")
-set(SAP_BLOCK_T "4")
-#N_i / SAP_BLOCK_i has to be an integer number
-#One block contains 2 * N_x / SAP_BLOCK_x * N_t / SAP_BLOCK_t variables 
-#For parallelization we fix one block per core i.e. 
-#SAP_BLOCK_X * SAP_BLOCK_T / 2 cores
-#-----------------------------------------------------------------------#
-
-#Number of test vectors
-set(NTEST "10") 
-#The coarse grid matrix dimension is NTEST * 2 * BLOCK_X * BLOCK_T
 
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_SOURCE_DIR}/include/config.h)
 
@@ -78,5 +55,3 @@ target_link_libraries("SM_${NS}x${NT}" PUBLIC MPI::MPI_CXX)
 
 #For windows with MinGW, use the following command to generate the makefile:
 #cmake -G "MinGW Makefiles" -DCMAKE_CXX_COMPILER="C:/msys64/ucrt64/bin/g++.exe" -DCMAKE_C_COMPILER="C:/msys64/ucrt64/bin/gcc.exe" ../
-
-

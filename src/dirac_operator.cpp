@@ -2,6 +2,10 @@
 
 void D_phi(const c_matrix& U, const spinor& phi, spinor &out,const double& m0) {
 	using namespace LV;
+	std::vector<std::vector<int>> &LeftPB = LeftPB_l[0];
+	std::vector<std::vector<int>> &RightPB = RightPB_l[0];
+	c_matrix &SignR = SignR_l[0];
+	c_matrix &SignL = SignL_l[0];
 	for (int n = 0; n < Ntot; n++) {
 		//n = x * Nt + t
 		out[n][0] = (m0 + 2) * phi[n][0] -0.5 * ( 
@@ -25,6 +29,10 @@ void D_phi(const c_matrix& U, const spinor& phi, spinor &out,const double& m0) {
 
 void D_dagger_phi(const c_matrix& U, const spinor& phi, spinor &Dphi,const double& m0) {
 	using namespace LV;
+	std::vector<std::vector<int>> &LeftPB = LeftPB_l[0];
+	std::vector<std::vector<int>> &RightPB = RightPB_l[0];
+	c_matrix &SignR = SignR_l[0];
+	c_matrix &SignL = SignL_l[0];
 	for (int n = 0; n < Ntot; n++) {
 		//n = x * Nt + t
 		Dphi[n][0] = (m0 + 2) * phi[n][0] -0.5 * ( 

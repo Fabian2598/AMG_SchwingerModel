@@ -1,9 +1,6 @@
 #ifndef GAUGECONF_H_INCLUDED
 #define GAUGECONF_H_INCLUDED
 #include "variables.h"
-#include "operator_overloads.h"
-#include <complex>  
-#include <iostream>
 #include <fstream>
 
 /*
@@ -32,12 +29,12 @@ public:
 	~GaugeConf() {}; 
 
 	/*
-	random initialization of the gauge configuration
+	Random initialization of the gauge configuration
 	*/
 	void initialize(); 
 
 	/*
-	set the gauge configuration
+	Set the gauge configuration
 	*/
 	void setGconf(const std::vector<std::vector<std::complex<double>>>& CONF) {Conf = CONF;}
 

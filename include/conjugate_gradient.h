@@ -9,7 +9,10 @@
     Conjugate gradient method for computing (DD^dagger)^-1 phi 
     U: gauge configuration
     phi: right-hand side vector
+    x: output solution
     m0: mass parameter for Dirac matrix 
+
+    The right-hand side is used as initial solution
         
     The convergence criterion is ||r|| < ||phi|| * tol
 */

@@ -27,10 +27,6 @@ public:
     class GMRES_D_B : public FGMRES {
         public:GMRES_D_B(const int& dim1, const int& dim2, const int& m, const int& restarts, const double& tol,SAP_C* parent) :
         FGMRES(dim1, dim2, m, restarts, tol), parent(parent) {
-            if (m > SAPV::sap_variables_per_block) {
-                std::cout << "Error: restart length > sap_variables_per_block" << std::endl;
-                exit(1);
-            }
 
         };
         ~GMRES_D_B() { };
@@ -85,10 +81,8 @@ public:
     /*
         Parallel version of the SAP method.
         Solves D x = v using the SAP method.
-        U: gauge configuration,
         v: right-hand side,
-        x: output,
-        m0: mass parameter,
+        x: output --> The initial given value to the method is considered the initial guess.
         nu: number of iterations,
         blocks_per_proc: number of blocks per process
 
@@ -120,26 +114,26 @@ private:
     void SchwarzBlocks();
 
     /*
-    A_B v = I_B * D_B^-1 * I_B^T v --> Extrapolation of D_B^-1 to the original lattice.
-    dim(v) = 2 * Ntot, dim(x) = 2 Ntot
-    v: input, x: output 
+        A_B v = I_B * D_B^-1 * I_B^T v --> Extrapolation of D_B^-1 to the original lattice.
+        dim(v) = 2 * Ntot, dim(x) = 2 Ntot
+        v: input, x: output 
     */
     void I_D_B_1_It(const spinor& v, spinor& x, const int& block);
 
     /*
-    Matrix-vector operation
-    This is defined in the derived classes
+        Matrix-vector global operation
+        This is defined in the derived classes
     */
     virtual void funcGlobal(const spinor& in, spinor& out) = 0; 
 
     /*
-    D_B operation. Dirac operator restricted to the block B.
+        Matrix-vector operation restricted to the blocks
     */
     virtual void funcLocal(const spinor& in, spinor& out) = 0; 
         
 };
 
-//Method used in my two-grid implementation 
+//SAP for the finest level
 class SAP_fine_level : public SAP_C {
 public:
     SAP_fine_level(const int& dim1, const int& dim2, const double& tol,const int& Nt, const int& Nx,const int& block_x,const int& block_t,
@@ -164,7 +158,6 @@ private:
     void D_B(const c_matrix& U, const spinor& v, spinor& x, const double& m0,const int& block);
 
     void funcLocal(const spinor& in, spinor& out) override { 
-        //std::cout << "funcLocal called for block " << blockMPI << std::endl;
         D_B(*U, in, out, m0,blockMPI);
     }
 

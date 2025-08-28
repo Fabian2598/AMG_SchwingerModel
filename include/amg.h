@@ -9,7 +9,7 @@ class AlgebraicMG{
     m0: Mass parameter for the Dirac matrix
     nu1: Number of pre-smoothing iterations
     nu2: Number of post-smoothing iterations
-    nlevels: number of levels
+    The number of levels is fixed in the CMakeLists.txt
 	*/
 public:
 
@@ -24,8 +24,9 @@ public:
 	private:
 		AlgebraicMG* parent; //Pointer to the enclosing AMG instance
 		int l; //Level
+
     	/*
-    	Implementation of the function that computes the matrix-vector product for the fine level
+    	Implementation of the function that computes the matrix-vector product for the current level
     	*/
     	void func(const spinor& in, spinor& out) override {
         	parent->levels[l]->D_operator(in,out);
@@ -53,6 +54,7 @@ public:
 			fgmres_k_cycle_l.push_back(fgmres);
     	}
 
+        //Build blocks and aggregates for every level
     	for(int l = 0; l<AMGV::levels-1; l++){
         	levels[l]->makeBlocks();
         	levels[l]->makeAggregates();
@@ -67,10 +69,12 @@ public:
 	double m0; 
 	int nu1, nu2; 
     std::vector<Level*> levels; //If I try to use a vector of objects I will run out of memory
-	std::vector<FGMRES_k_cycle*> fgmres_k_cycle_l;
+	std::vector<FGMRES_k_cycle*> fgmres_k_cycle_l; //Flexible GMRES used for the k-cycle on every level
 
     //Checks orthonormalization and that P^H D P = Dc
     void testSetUp();
+    //Check that SAP is doing the right thing --> Compares GMRES and SAP solution
+    void testSAP();
 
     // psi_l = V_cycle(l,eta_l)
     void v_cycle(const int& l, const spinor& eta_l, spinor& psi_l);
@@ -78,7 +82,7 @@ public:
 	// psi_l = K_cycle(l,eta_l)
 	void k_cycle(const int& l, const spinor& eta_l, spinor& psi_l);
 
-    //Calls K or V-cycle depending on the value of AMGV::cycle
+    //Calls K or V-cycle depending on the value of AMGV::cycle. Stand-alone solver
     void applyMultilevel(const int& it, const spinor&rhs, spinor& out,const double tol,const bool print_message);
     
 
@@ -103,6 +107,9 @@ class FGMRES_amg : public FGMRES {
     elapsed_time = endT - startT;
     std::cout << "[MPI Process " << rank << "] Elapsed time for Set-up phase = " << elapsed_time << " seconds" << std::endl;   
     //---------------------------//
+    //Tests
+    //amg.testSetUp(); //Checks that test vectors are orthonormal and that P^dagg D P = D_c at every level
+    //amg.testSAP(); //Checks that SAP is working properly for every level. This compares the solution with GMRES.
     
     };
     ~FGMRES_amg() { };

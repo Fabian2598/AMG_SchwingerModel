@@ -4,14 +4,12 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include "params.h"
-#include "bi_cgstab.h"
-#include "conjugate_gradient.h"
-#include "boundary.h"
-#include "twoGrid.h"
-#include "amg.h"
-#include "mpi.h"
-
+#include "params.h" //Read parameters for lattice blocks, test vectors and SAP blocks
+#include "bi_cgstab.h" //BiCGstab for comparison
+#include "conjugate_gradient.h" //Conjugate gradient for inverting the normal equations
+#include "boundary.h" //Build boundary conditions at every grid level
+#include "amg.h" //Algebraic Multigrid Method
+#include "mpi.h" //MPI
 
 
 //Formats decimal numbers
@@ -35,16 +33,12 @@ int main(int argc, char **argv) {
     
     readParameters("../parameters.dat");
     srand(19);
-
     //srand(time(0));
     
     Coordinates(); //Builds array with coordinates of the lattice points x * Nt + t
-    MakeBlocks(); //Makes lattice blocks 
-    periodic_boundary(); //Builds LeftPB and RightPB (periodic boundary for U_mu(n))
-    boundary();
+    boundary(); //Boundaries for every level
 
-    AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
-    //double m0 = -0.5;
+    AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
     mass::m0 = -0.18840579710144945;
     double m0 = mass::m0; 
 
@@ -76,19 +70,13 @@ int main(int argc, char **argv) {
             std::cout << "Conf read from " << NameData.str() << std::endl;
         }
     }
+    
 
     MPI_Barrier(MPI_COMM_WORLD);
     //Parameters in variables.cpp
     if (rank == 0)
         printParameters();
         
-    
-    Aggregates();
-    sap.set_params(GConf.Conf, m0); 
-    //AMG amg(GConf, m0,AMGV::nu1, AMGV::nu2); 
-	//amg.setUpPhase(1,AMGV::Nit);
-    //amg.initializeCoarseLinks();
-
     spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     rhs[0][0] = 1;
     //for(int i = 0; i < LV::Ntot; i++) {
@@ -96,7 +84,6 @@ int main(int argc, char **argv) {
     //    rhs[i][1] = RandomU1();
     //}
 
-    spinor x(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     spinor xAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     spinor x0(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0)); //Intial sol
 
@@ -104,11 +91,12 @@ int main(int argc, char **argv) {
     //Stand alone solver
     /*
     {
-    AlgebraicMG AMG(GConf, m0,AMGV::nu1, AMGV::nu2);
-    AMG.setUpPhase(1,3);
-    MPI_Barrier(MPI_COMM_WORLD);
-    //AMG.testSetUp();
-    AMG.applyMultilevel(50, rhs,x,1e-10,true);
+        spinor x(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+        AlgebraicMG AMG(GConf, m0,AMGV::nu1, AMGV::nu2);
+        AMG.setUpPhase(1,3);
+        MPI_Barrier(MPI_COMM_WORLD);
+        //AMG.testSetUp();
+        AMG.applyMultilevel(50, rhs,x,1e-10,true);
     }
     */
 
@@ -123,15 +111,17 @@ int main(int argc, char **argv) {
     fgmres_amg.fgmres(rhs,x0,xAMG,true);
     endT = MPI_Wtime();
     printf("[MPI process %d] time elapsed during the job: %.4fs.\n", rank, endT - startT);
-
+    
+    
+    
+    //Check if D_phi and rhs are equal
     spinor Dphi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     D_phi(GConf.Conf,xAMG,Dphi,m0);
-    //Check if D_phi and rhs are equal
     for(int n=0; n<LevelV::Nsites[0]; n++){
-        for(int c=0; c<LevelV::DOF[0]; c++){
-            if (std::abs(Dphi[n][c]-rhs[n][c])>1e-8){
-                std::cout << "Error: D_phi and rhs are not equal at site " << n << " component " << c << std::endl;
-                std::cout << "D_phi: " << Dphi[n][c] << " rhs: " << rhs[n][c] << std::endl;
+        for(int dof=0; dof<LevelV::DOF[0]; dof++){
+            if (std::abs(Dphi[n][dof]-rhs[n][dof])>1e-8){
+                std::cout << "Error: D_phi and rhs are not equal at site " << n << " component " << dof << std::endl;
+                std::cout << "D_phi: " << Dphi[n][dof] << " rhs: " << rhs[n][dof] << std::endl;
                 exit(1);
             }
         }
