@@ -11,7 +11,7 @@ set(SRC_FILES
     src/bi_cgstab.cpp           #Bi-CGStab solver for comparison
     src/conjugate_gradient.cpp  #Conjugate gradient for solving normal equations
     src/sap.cpp                 #Schwarz alternating method
-    src/twoGrid.cpp                 #Two-grid implementation 
+    src/twoGrid.cpp             #Two-grid implementation 
     src/amg.cpp                 #Multilevel method
     src/main.cpp                #Main program
     src/level.cpp
@@ -19,8 +19,8 @@ set(SRC_FILES
 )
 
 #--------------------------Lattice dimensions---------------------------#
-set(NS "32") #Space
-set(NT "32") #Time
+set(NS "64") #Space
+set(NT "64") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#

@@ -58,14 +58,14 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
         err = sqrt(std::real(dot(r, r)));
         if (err < tol* norm_phi) {
             if (print_message == true) {
-             std::cout << "FGMRES converged in " << k + 1 << " restarts" << " Error " << err << std::endl;
+             std::cout << "FGMRES converged in " << k + 1 << " cycles" << " Error " << err << std::endl;
             }
             return 1;
         }
         k++;
     }
     if (print_message == true) {
-        std::cout << "FGMRES did not converge in " << restarts << " restarts" << " Error " << err << std::endl;
+        std::cout << "FGMRES did not converge in " << restarts << " cycles" << " Error " << err << std::endl;
     }
     return 0;
 }

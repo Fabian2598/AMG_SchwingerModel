@@ -84,4 +84,52 @@ public:
 
 };
 
+/*
+    FGMRES with a multilevel method as preconditioner
+*/
+class FGMRES_amg : public FGMRES {
+    public:
+    FGMRES_amg(const int& dim1, const int& dim2, const int& m, const int& restarts, const double& tol,
+    const GaugeConf& GConf,const double& m0) : FGMRES(dim1, dim2, m, restarts, tol), GConf(GConf),
+    m0(m0), dim1(dim1), dim2(dim2), amg(GConf, m0, AMGV::nu1, AMGV::nu2) {
+
+    //      Set up phase for AMG     //
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    double elapsed_time;
+    double startT, endT;     
+    startT = MPI_Wtime();
+    amg.setUpPhase(1, AMGV::Nit); //test vectors intialization
+    endT = MPI_Wtime();
+    elapsed_time = endT - startT;
+    std::cout << "[MPI Process " << rank << "] Elapsed time for Set-up phase = " << elapsed_time << " seconds" << std::endl;   
+    //---------------------------//
+    
+    };
+    ~FGMRES_amg() { };
+    
+private:
+    const GaugeConf& GConf; //Gauge configuration
+    const double& m0; //reference to mass parameter
+    const int &dim1;
+    const int &dim2;
+    int rank;
+    AlgebraicMG amg; //AMG instance for the two-grid method
+        
+    void func(const spinor& in, spinor& out) override {
+        D_phi(GConf.Conf, in, out, m0); 
+    }
+
+    void preconditioner(const spinor& in, spinor& out) override {
+        for(int i = 0; i<dim1; i++){
+            for(int j = 0; j<dim2; j++){
+                out[i][j] = 0;
+            }
+        }
+		if (AMGV::cycle == 0)
+			amg.v_cycle(0,in, out);
+		else if (AMGV::cycle == 1)
+			amg.k_cycle(0,in, out);
+    }
+};
+
 #endif

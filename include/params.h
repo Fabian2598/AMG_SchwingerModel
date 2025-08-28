@@ -32,12 +32,16 @@ void readParameters(const std::string& inputFile){
         LevelV::NtSites[level] = (level == 0 ) ? LV::Nt : LevelV::BlocksT[level-1];
 		LevelV::DOF[level] = (level == 0 ) ? 2 : 2 * LevelV::Ntest[level-1];
         LevelV::Colors[level] = (level == 0 ) ? 1 : LevelV::Ntest[level-1]; 
+        
         LevelV::SAP_Block_x[level] = sap_block_x;
         LevelV::SAP_Block_t[level] = sap_block_t;
+        LevelV::SAP_elements_x[level] = LevelV::NxSites[level]/sap_block_x; 
+        LevelV::SAP_elements_t[level] = LevelV::NtSites[level]/sap_block_t; 
+        LevelV::SAP_variables_per_block[level] = LevelV::DOF[level] * LevelV::SAP_elements_x[level] * LevelV::SAP_elements_t[level] ; 
 
         LevelV::GMRES_restart_len[level] = 20;
         LevelV::GMRES_restarts[level] = 20;
-        LevelV::GMRES_tol[level] = 1e-10;
+        LevelV::GMRES_tol[level] = 0.1;
 
     }
     //Store the number of sites and degrees of freedom for the coarsest lattice as well
@@ -51,7 +55,7 @@ void readParameters(const std::string& inputFile){
 
     LevelV::GMRES_restart_len[maxLevel] = 20;
     LevelV::GMRES_restarts[maxLevel] = 20;
-    LevelV::GMRES_tol[maxLevel] = 1e-10;
+    LevelV::GMRES_tol[maxLevel] = 0.1;
 
     infile.close();
     std::cout << "Parameters read from " << NameData.str() << std::endl;

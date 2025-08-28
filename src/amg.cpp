@@ -45,7 +45,10 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
 			spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
 			for (int i = 0; i < LevelV::Ntest[l]; i++) {
 				rhs = levels[l]->test_vectors[i];
-				v_cycle(l, rhs, levels[l]->test_vectors[i]);
+				if (AMGV::cycle == 0)
+					v_cycle(l, rhs, levels[l]->test_vectors[i]);
+				else if (AMGV::cycle == 1)
+					k_cycle(l, rhs, levels[l]->test_vectors[i]);
 			}
 			//Build the interpolator between level l and l+1
 			levels[l]->interpolator_columns = levels[l]->test_vectors; 

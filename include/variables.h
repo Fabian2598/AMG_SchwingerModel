@@ -94,8 +94,10 @@ namespace LevelV{
     constexpr int maxLevel = AMGV::levels - 1; //Maximum level id is levels - 1
 
     extern int SAP_Block_x[AMGV::levels]; //Number of SAP blocks on the x direction 
-    extern int SAP_Block_t[AMGV::levels]; //Number of SAP blocks on the y direction
-    //For the coarsest level we could define a blocking or just ignore this.
+    extern int SAP_Block_t[AMGV::levels]; //Number of SAP blocks on the t direction
+    extern int SAP_elements_x[AMGV::levels]; //Number of SAP blocks on the x direction 
+    extern int SAP_elements_t[AMGV::levels]; //Number of SAP blocks on the t direction
+    extern int SAP_variables_per_block[AMGV::levels]; //Number of variables in each SAP block
 
     extern int GMRES_restart_len[AMGV::levels];
     extern int GMRES_restarts[AMGV::levels];
@@ -157,5 +159,8 @@ extern std::vector<std::vector<std::vector<int>>>RightPB_l; //Right periodic bou
 extern std::vector<std::vector<std::vector<int>>>LeftPB_l; //Left periodic boundary
 extern std::vector<std::vector<std::vector<c_double>>>SignR_l; //Right fermionic boundary
 extern std::vector<std::vector<std::vector<c_double>>>SignL_l; //Left fermionic boundary
+
+
+void printParameters();
 
 #endif 

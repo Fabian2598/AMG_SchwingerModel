@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
 
     GaugeConf GConf = GaugeConf(LV::Nx, LV::Nt);
     GConf.initialize();
+    
     readParameters("../parameters.dat");
     srand(19);
 
@@ -42,69 +43,89 @@ int main(int argc, char **argv) {
     periodic_boundary(); //Builds LeftPB and RightPB (periodic boundary for U_mu(n))
     boundary();
 
+    AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
     //double m0 = -0.5;
-    mass::m0 = -0.58;//-0.18840579710144945;
+    mass::m0 = -0.18840579710144945;
     double m0 = mass::m0; 
+
+
+    //Open conf from file//
+    
+    double beta = 2;
+    int nconf = 20;
+    {
+        std::ostringstream NameData;
+        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
+        //std::cout << "Reading conf from file: " << NameData.str() << std::endl;
+        std::ifstream infile(NameData.str());
+        if (!infile) {
+            std::cerr << "File " << NameData.str() <<" not found on rank " << rank << std::endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+        int x, t, mu;
+        double re, im;
+        
+        c_matrix CONF(LV::Ntot,c_vector(2,0)); 
+        while (infile >> x >> t >> mu >> re >> im) {
+            CONF[Coords[x][t]][mu] = c_double(re, im); 
+        }
+        GConf.setGconf(CONF);
+        infile.close();
+        if (rank == 0){
+            std::cout << "Conf read from " << NameData.str() << std::endl;
+        }
+    }
 
     MPI_Barrier(MPI_COMM_WORLD);
     //Parameters in variables.cpp
-    if (rank == 0){
-        using namespace LV; //Lattice parameters namespace
-        std::cout << "******************* AMG for the Dirac matrix in the Schwinger model *******************" << std::endl;
-        std::cout << " Nx = " << Nx << " Nt = " << Nt << std::endl;
-        std::cout << " Lattice dimension = " << (Nx * Nt) << std::endl;
-        std::cout << " Number of entries of the Dirac matrix = (" << (2 * Nx * Nt) << ")^2 = " << (2 * Nx * Nt) * (2 * Nx * Nt) << std::endl;
-        std::cout << " Bare mass parameter m0 = " << m0 << std::endl;
-        std::cout << "-----------------------------------" << std::endl;
+    if (rank == 0)
+        printParameters();
         
-        std::cout << "Blocks, aggregates and test vectors for each level" << std::endl;
-        using namespace LevelV; //Lattice parameters namespace
-        for(int l=0; l< AMGV::levels-1; l++){
-            std::cout << "Level " << l << " Block X " << BlocksX[l] 
-            << " Block T " << BlocksT[l] << " Ntest " << Ntest[l] << " Nagg " << Nagg[l]
-            << " Number of lattice blocks " << NBlocks[l] 
-            << " Schwarz Block T " << SAP_Block_t[l] << " Schwarz Block X " << SAP_Block_x[l] << std::endl;
-        }
-        for(int l=0; l< AMGV::levels; l++){
-            std::cout << "Level " << l << " Nsites " << Nsites[l] 
-            << " Nxsites " << NxSites[l] << " NtSites " << NtSites[l] << " DOF " << DOF[l]
-            << " Colors " << Colors[l] << std::endl;
-        }
-        std::cout << "\n";
-    }
+    
     Aggregates();
     sap.set_params(GConf.Conf, m0); 
     //AMG amg(GConf, m0,AMGV::nu1, AMGV::nu2); 
 	//amg.setUpPhase(1,AMGV::Nit);
     //amg.initializeCoarseLinks();
 
-    //Three levels tests
-    //TestCoarseGaugeFieldsV1(GConf);
-    //checkSAPV1(GConf);
-    
-    //Four levels tests
-    //TestCoarseGaugeFieldsV2(GConf);
-    //checkSAPV2(GConf);
+    spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    rhs[0][0] = 1;
+    //for(int i = 0; i < LV::Ntot; i++) {
+    //    rhs[i][0] = RandomU1();
+    //    rhs[i][1] = RandomU1();
+    //}
 
-    spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],1));
     spinor x(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    spinor xK(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor xAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor x0(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0)); //Intial sol
 
+    
+    //Stand alone solver
+    /*
+    {
     AlgebraicMG AMG(GConf, m0,AMGV::nu1, AMGV::nu2);
     AMG.setUpPhase(1,3);
     MPI_Barrier(MPI_COMM_WORLD);
-
     //AMG.testSetUp();
-    AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
     AMG.applyMultilevel(50, rhs,x,1e-10,true);
+    }
+    */
 
-    AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
-    AMG.applyMultilevel(50, rhs,xK,1e-10,true);
 
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    double elapsed_time;
+    double startT, endT;
+
+    startT = MPI_Wtime();
+    FGMRES_amg fgmres_amg(LV::Ntot, 2,  FGMRESV::fgmres_restart_length, FGMRESV::fgmres_restarts,FGMRESV::fgmres_tolerance,GConf, m0);
+    fgmres_amg.fgmres(rhs,x0,xAMG,true);
+    endT = MPI_Wtime();
+    printf("[MPI process %d] time elapsed during the job: %.4fs.\n", rank, endT - startT);
 
     spinor Dphi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    D_phi(GConf.Conf,xK,Dphi,m0);
+    D_phi(GConf.Conf,xAMG,Dphi,m0);
     //Check if D_phi and rhs are equal
     for(int n=0; n<LevelV::Nsites[0]; n++){
         for(int c=0; c<LevelV::DOF[0]; c++){

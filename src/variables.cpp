@@ -45,8 +45,12 @@ namespace LevelV{
     int NtSites[AMGV::levels];
     int DOF[AMGV::levels];
     int Colors[AMGV::levels];
+
     int SAP_Block_x[AMGV::levels];
     int SAP_Block_t[AMGV::levels];
+    int SAP_elements_x[AMGV::levels]; 
+    int SAP_elements_t[AMGV::levels]; 
+    int SAP_variables_per_block[AMGV::levels]; 
 
     int GMRES_restart_len[AMGV::levels];
     int GMRES_restarts[AMGV::levels];
@@ -183,3 +187,58 @@ void MakeBlocks(){
     (LEVELS,std::vector<std::vector<c_double>>(LV::Ntot,std::vector<c_double>(2,0)) );
    std::vector<std::vector<std::vector<c_double>>> SignL_l = std::vector<std::vector<std::vector<c_double>>>
     (LEVELS,std::vector<std::vector<c_double>>(LV::Ntot,std::vector<c_double>(2,0)) );
+
+
+void printParameters(){
+    using namespace LV; //Lattice parameters namespace
+        std::cout << "******************* AMG for the Dirac matrix in the Schwinger model *******************" << std::endl;
+        std::cout << "| Nx = " << Nx << " Nt = " << Nt << std::endl;
+        std::cout << "| Lattice dimension = " << (Nx * Nt) << std::endl;
+        std::cout << "| Number of entries of the Dirac matrix = (" << (2 * Nx * Nt) << ")^2" << std::endl;
+        std::cout << "| Bare mass parameter m0 = " << mass::m0 << std::endl;
+        std::cout << "---------------------------------------------------------------------------------------" << std::endl;  
+        std::cout << "* Blocks, aggregates and test vectors at each level" << std::endl;
+        using namespace LevelV; //Lattice parameters namespace
+        for(int l=0; l< AMGV::levels-1; l++){
+            std::cout << "| Level " << l << " Block X " << BlocksX[l] 
+            << " Block T " << BlocksT[l] << " Ntest " << Ntest[l] << " Nagg " << Nagg[l]
+            << " Number of lattice blocks " << NBlocks[l] 
+            << " Schwarz Block T " << SAP_Block_t[l] << " Schwarz Block X " << SAP_Block_x[l] << std::endl;
+        }
+        std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+        std::cout << "* SAP blocks" << std::endl;
+        for(int l=0; l< AMGV::levels-1; l++){
+            std::cout << "| Level " << l << " Schwarz Block T " << SAP_Block_t[l] << " Schwarz Block X " << SAP_Block_x[l]  
+            << " Number of blocks " << SAP_Block_t[l]*SAP_Block_x[l] << 
+            " Each block has " << SAP_variables_per_block[l] << " variables" << std::endl;
+        }
+        std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+        std::cout << "* Sites and degrees of freedom at each level" << std::endl;
+        for(int l=0; l< AMGV::levels; l++){
+            std::cout << "| Level " << l << " Nsites " << Nsites[l] 
+            << " Nxsites " << NxSites[l] << " NtSites " << NtSites[l] << " DOF " << DOF[l]
+            << " Colors " << Colors[l] << std::endl;
+        }
+        std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+        std::cout << "| GMRES restart length for SAP blocks = " << SAPV::sap_gmres_restart_length << std::endl;
+        std::cout << "| GMRES iterations for SAP blocks = " << SAPV::sap_gmres_restarts << std::endl;
+        std::cout << "| GMRES tolerance for SAP blocks = " << SAPV::sap_gmres_tolerance << std::endl;
+        std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+        std::cout << "* AMG parameters" << std::endl;
+        if (AMGV::cycle == 0)
+            std::cout << "| Cycle = " << "V-cycle" << std::endl;
+        else if (AMGV::cycle == 1)
+            std::cout << "| Cycle = " << "K-cycle" << std::endl;
+        std::cout << "| Number of levels = " << AMGV::levels << std::endl;
+        std::cout << "| nu1 (pre-smoothing) = " << AMGV::nu1 << " nu2 (post-smoothing) = " << AMGV::nu2 << std::endl;
+        std::cout << "| Number of iterations for improving the interpolator = " << AMGV::Nit << std::endl;
+        std::cout << "| Restart length of GMRES at the coarse level = " << LevelV::GMRES_restart_len[LevelV::maxLevel] << std::endl;
+        std::cout << "| Restarts of GMRES at the coarse level = " << LevelV::GMRES_restarts[LevelV::maxLevel] << std::endl;
+        std::cout << "| GMRES tolerance for the coarse level solution = " << LevelV::GMRES_tol[LevelV::maxLevel] << std::endl;
+        std::cout << "* FGMRES with AMG preconditioning parameters" << std::endl;
+        std::cout << "| FGMRES restart length = " << FGMRESV::fgmres_restart_length << std::endl;
+        std::cout << "| FGMRES restarts = " << FGMRESV::fgmres_restarts << std::endl;
+        std::cout << "| FGMRES tolerance = " << FGMRESV::fgmres_tolerance << std::endl;
+        std::cout << "*****************************************************************************************************" << std::endl;
+
+}

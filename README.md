@@ -18,9 +18,9 @@ Work in progress ...
     - [x] Test the method for the coarser levels. Compare the convergence of the solution with GMRES and check that the inversion is working properly.
 - [x] Integrate everything in a V-cycle.
 - [X] Implement a K-cycle.
-- [ ] Write the SetUp phase properly.
-- [ ] Use the method as a preconditioner for FGMRES.
-- [ ] Perform simple convergence tests for $V = 32^2, 64^2, 128^2$.
+- [x] Use the method as a preconditioner for FGMRES.
+- [x] Perform simple convergence tests for $V = 32^2, 64^2, 128^2$.
+- [x] Compare the two-grid, the K-cycle and the V-cycle used as preconditioners for the FGMRES with the confs that I already have.
+- [ ] Improve (?) the SetUp phase properly.
 - [ ] Improve the performance and clean the code. 
-- [ ] Compare the two-grid, the K-cycle and the V-cycle used as preconditioners for the FGMRES with the confs that I already have.
 - [ ] Extensively document the code.
