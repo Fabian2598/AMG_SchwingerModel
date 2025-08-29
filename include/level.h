@@ -114,9 +114,6 @@ public:
         //Lattice blocking
         LatticeBlocks = std::vector<std::vector<int>> (NBlocks, std::vector<int>(sites_per_block,0));
 
-        //Used for the orthonormalization of the test vectors
-        v_chopped = std::vector<spinor>(Ntest*Nagg, spinor(Nsites, c_vector(DOF,0))); //For orthonormalization
- 
         //For level = 0 DOF[level] = 2
         //For level = 1 DOF[level] = 2 * LevelV::Ntest[level-1] = 2 * LevelV::Colors[level]
         Agg = new int[NBlocks * DOF * sites_per_block]; 
@@ -244,8 +241,6 @@ public:
 
     void orthonormalize(); //Local orthonormalization of the test vectors
     void checkOrthogonality(); //Check orthogonality of the test vectors
-    std::vector<spinor> v_chopped; //We use this for the Gram-Schmidt process during the test vector orthonormalization
-
 
     /*
     Matrix-vector operation that defines the level l.

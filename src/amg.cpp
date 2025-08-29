@@ -10,13 +10,10 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
 		for (int n = 0; n < LevelV::Nsites[l]; n++) {
 		for (int dof = 0; dof < LevelV::DOF[l]; dof++) {
-			levels[l]->test_vectors[i][n][dof] = eps * RandomU1();
+			levels[l]->interpolator_columns[i][n][dof] = eps * RandomU1();
 		}
 		}
 		}
-        levels[l]->interpolator_columns = levels[l]->test_vectors;
-        levels[l]->orthonormalize(); 
-	    levels[l]->makeCoarseLinks(*levels[l+1]); //Make coarse gauge links which define the operator D for the next level
 	}
 	
    
@@ -26,10 +23,9 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
         spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
 			//Right hand side of the linear system 
-			rhs = levels[l]->test_vectors[i];  //I could also leave it as zero
-            levels[l]->sap_l.SAP(rhs,levels[l]->test_vectors[i],AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc,false);
+			rhs = levels[l]->interpolator_columns[i];  //I could also leave it as zero
+            levels[l]->sap_l.SAP(rhs,levels[l]->interpolator_columns[i],AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc,false);
 		}
-		levels[l]->interpolator_columns = levels[l]->test_vectors; 
 		levels[l]->orthonormalize(); 
 		levels[l]->makeCoarseLinks(*levels[l+1]); 
 	}
@@ -44,7 +40,7 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
 		for (int l = 0; l<AMGV::levels-1; l++){
 			spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
 			for (int i = 0; i < LevelV::Ntest[l]; i++) {
-				rhs = levels[l]->test_vectors[i];
+				rhs = levels[l]->interpolator_columns[i];
 				if (AMGV::cycle == 0)
 					v_cycle(l, rhs, levels[l]->test_vectors[i]);
 				else if (AMGV::cycle == 1)

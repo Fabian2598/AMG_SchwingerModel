@@ -124,82 +124,6 @@ void Level::makeDirac(){
 		
 }
 
-void Level::orthonormalize(){
-	
-	//Local orthonormalization of the test vectors
-	
-	//Each test vector is chopped into the Nagg aggregates, which yields Ntest*Nagg columns for the interpolator.
-	//Each column is orthonormalized with respect to the others that belong to the same aggregate.
-	//This follows the steps from Section 3.1 of A. Frommer et al "Adaptive Aggregation-Based Domain Decomposition 
-	//Multigrid for the Lattice Wilson-Dirac Operator", SIAM, 36 (2014).
-	
-
-	//Getting the columns of the interpolator for the orthonormalization
-	
-	spinor e_i(NBlocks, c_vector(2*Ntest,0));
-	int x, s, c, a; //block, spin and color
-	for(int i = 0; i < Ntest*Nagg; i++){
-		//e_i = canonical_vector(i, Ntest, Nagg);
-		c = i / Nagg; //test vector
-		a = i % Nagg; //Aggregate
-		x = a / 2; //block
-		s = a % 2; //spin
-		e_i[x][2*c+s] = 1.0;
-		P_v(e_i,v_chopped[i]); //Columns of the interpolator
-		e_i[x][2*c+s] = 0.0;
-	}
-	
-	//Orthonormalization by applying Gram-Schmidt
-	c_double proj; 
-	for (int i = 0; i < Nagg; i++) {
-		s = i % Nagg; x = s / 2; //spin, lattice block
-		for (int nt = 0; nt < Ntest; nt++) {
-			for (int j = 0; j < nt; j++) {
-				proj = 0;//dot(v_chopped[nt*Nagg+i], v_chopped[j*Nagg+i]);			
-				for (int n = 0; n < Nsites; n++) {
-        			for (int alf = 0; alf < DOF; alf++) {
-            			proj += v_chopped[nt*Nagg+i][n][alf] * std::conj(v_chopped[j*Nagg+i][n][alf]);
-        			}
-    			}
-
-				for(int n=0; n<Nsites; n++){
-					for(int alf=0; alf<DOF; alf++){
-						v_chopped[nt*Nagg+i][n][alf] = v_chopped[nt*Nagg+i][n][alf] - proj * v_chopped[j*Nagg+i][n][alf];
-					}
-				}
-			}
-			normalize(v_chopped[nt*Nagg+i]);
-		}
-	}
-
-
- 	//We sum all the columns of the interpolator that belong to the same aggregate and store the result
-	//in a single vector. We do that for each aggregate. This enables us to have all the information of 
-	//the locally orthonormalized test vectors in a single vector.
-
-	for(int nt = 0; nt < Ntest; nt++){
-		for(int n = 0; n < Nsites; n++){
-			for(int alf=0; alf<DOF; alf++){
-				interpolator_columns[nt][n][alf] = 0;
-			}
-		}
-	}
-
-	for(int nt = 0; nt < Ntest; nt++){
-		for(int a = 0; a < Nagg; a++){
-			for(int n = 0; n < Nsites; n++){
-				for(int alf=0; alf<DOF; alf++){
-					interpolator_columns[nt][n][alf] += v_chopped[nt*Nagg + a][n][alf];
-				}
-			}
-		}
-	}
-
-
-
-}
-
-
 void Level::checkOrthogonality() {
 	//Check orthogonality of the test vectors
 	//aggregate 
@@ -445,64 +369,126 @@ void Level::SAP_level_l::D_local(const spinor& in, spinor& out, const int& block
 
 
 
-/*
+
+void Level::orthonormalize(){	
+	//Local orthonormalization of the test vectors
+	//Each test vector is chopped into the Nagg aggregates, which yields Ntest*Nagg columns for the interpolator.
+	//Each column is orthonormalized with respect to the others that belong to the same aggregate.
+	//This follows the steps from Section 3.1 of A. Frommer et al "Adaptive Aggregation-Based Domain Decomposition 
+	//Multigrid for the Lattice Wilson-Dirac Operator", SIAM, 36 (2014).
+	spinor e_i(NBlocks, c_vector(2*Ntest,0));
+	int n, s, c; //block, spin and color
+	int var;
+	//Orthonormalization by applying Gram-Schmidt
+	c_double proj; 
+	c_double norm;
+	//Looping over the aggregates
+	for (int a = 0; a < Nagg; a++) {
+		//Looping over the test vectors
+		for (int nt = 0; nt < Ntest; nt++) {
+			for (int ntt = 0; ntt < nt; ntt++) {
+				proj = 0;
+				for (int j = 0; j < colors * x_elements * t_elements; j++) {
+					var = Agg[a * sites_per_block * colors + j]; 
+					n = nCoords[var]; s = sCoords[var]; c = cCoords[var];
+					proj += interpolator_columns[nt][n][2*c+s] * std::conj(interpolator_columns[ntt][n][2*c+s]);
+				}
+				for (int j = 0; j < colors * x_elements * t_elements; j++) {
+					var = Agg[a * sites_per_block * colors + j]; 
+					n = nCoords[var]; s = sCoords[var]; c = cCoords[var];
+					interpolator_columns[nt][n][2*c+s] -= proj * interpolator_columns[ntt][n][2*c+s];
+				}
+			}
+			//normalize
+			norm = 0.0;
+			for (int j = 0; j < colors * x_elements * t_elements; j++) {
+				var = Agg[a * sites_per_block * colors + j]; 
+				n = nCoords[var]; s = sCoords[var]; c = cCoords[var];
+				norm += interpolator_columns[nt][n][2*c+s] * std::conj(interpolator_columns[nt][n][2*c+s]);
+			}
+			norm = sqrt(std::real(norm)) + 0.0*c_double(0,1); 
+			for (int j = 0; j < colors * x_elements * t_elements; j++) {
+				var = Agg[a * sites_per_block * colors + j]; 
+				n = nCoords[var]; s = sCoords[var]; c = cCoords[var];
+				interpolator_columns[nt][n][2*c+s] /= norm;
+			}
+		}
+	} 	
+}
+
+ /*
 void Level::orthonormalize(){
+	
+	//Local orthonormalization of the test vectors
+	
+	//Each test vector is chopped into the Nagg aggregates, which yields Ntest*Nagg columns for the interpolator.
+	//Each column is orthonormalized with respect to the others that belong to the same aggregate.
+	//This follows the steps from Section 3.1 of A. Frommer et al "Adaptive Aggregation-Based Domain Decomposition 
+	//Multigrid for the Lattice Wilson-Dirac Operator", SIAM, 36 (2014).
+	
 
 	//Getting the columns of the interpolator for the orthonormalization
 	
 	spinor e_i(NBlocks, c_vector(2*Ntest,0));
 	int x, s, c, a; //block, spin and color
-	std::vector<spinor> interpolator_columns_copy(Ntest,spinor( Nsites, c_vector (DOF,0))); 
+	for(int i = 0; i < Ntest*Nagg; i++){
+		//e_i = canonical_vector(i, Ntest, Nagg);
+		c = i / Nagg; //test vector
+		a = i % Nagg; //Aggregate
+		x = a / 2; //block
+		s = a % 2; //spin
+		e_i[x][2*c+s] = 1.0;
+		P_v(e_i,v_chopped[i]); //Columns of the interpolator
+		e_i[x][2*c+s] = 0.0;
+	}
+	
 	//Orthonormalization by applying Gram-Schmidt
 	c_double proj; 
 	for (int i = 0; i < Nagg; i++) {
-		spinor v1(Nsites,c_vector(DOF,0)); 
 		s = i % Nagg; x = s / 2; //spin, lattice block
 		for (int nt = 0; nt < Ntest; nt++) {
-			e_i[x][2*nt+s] = 1.0;
-			P_v(e_i,v1); //Columns of the interpolator
-			e_i[x][2*nt+s] = 0.0;
 			for (int j = 0; j < nt; j++) {
-				spinor v2(Nsites,c_vector(DOF,0));
-				e_i[x][2*j+s] = 1.0;
-				P_v(e_i,v2); //Columns of the interpolator
-				e_i[x][2*j+s] = 0.0;
 				proj = 0;//dot(v_chopped[nt*Nagg+i], v_chopped[j*Nagg+i]);			
 				for (int n = 0; n < Nsites; n++) {
         			for (int alf = 0; alf < DOF; alf++) {
-						proj += v1[n][alf] * std::conj(v2[n][alf]);
-            			//proj += v_chopped[nt*Nagg+i][n][alf] * std::conj(v_chopped[j*Nagg+i][n][alf]);
+            			proj += v_chopped[nt*Nagg+i][n][alf] * std::conj(v_chopped[j*Nagg+i][n][alf]);
         			}
     			}
 
 				for(int n=0; n<Nsites; n++){
 					for(int alf=0; alf<DOF; alf++){
-						//v_chopped[nt*Nagg+i][n][alf] = v_chopped[nt*Nagg+i][n][alf] - proj * v_chopped[j*Nagg+i][n][alf];
-						v1[n][alf] -= proj * v2[n][alf];
+						v_chopped[nt*Nagg+i][n][alf] = v_chopped[nt*Nagg+i][n][alf] - proj * v_chopped[j*Nagg+i][n][alf];
 					}
 				}
 			}
-			//normalize(v_chopped[nt*Nagg+i]);
-			normalize(v1);
-			
-			for(int n = 0; n < Nsites; n++){
-				for(int alf=0; alf<DOF; alf++){
-					interpolator_columns_copy[nt][n][alf] += v1[n][alf];
-				}
-			}
-			
-
+			normalize(v_chopped[nt*Nagg+i]);
 		}
 	}
+
+
+ 	//We sum all the columns of the interpolator that belong to the same aggregate and store the result
+	//in a single vector. We do that for each aggregate. This enables us to have all the information of 
+	//the locally orthonormalized test vectors in a single vector.
 
 	for(int nt = 0; nt < Ntest; nt++){
 		for(int n = 0; n < Nsites; n++){
 			for(int alf=0; alf<DOF; alf++){
-				interpolator_columns[nt][n][alf] = interpolator_columns_copy[nt][n][alf];
+				interpolator_columns[nt][n][alf] = 0;
 			}
 		}
 	}
- 	
+
+	for(int nt = 0; nt < Ntest; nt++){
+		for(int a = 0; a < Nagg; a++){
+			for(int n = 0; n < Nsites; n++){
+				for(int alf=0; alf<DOF; alf++){
+					interpolator_columns[nt][n][alf] += v_chopped[nt*Nagg + a][n][alf];
+				}
+			}
+		}
+	}
+
+
+
 }
 */
- 
