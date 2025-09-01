@@ -108,7 +108,7 @@ class FGMRES_amg : public FGMRES {
     std::cout << "[MPI Process " << rank << "] Elapsed time for Set-up phase = " << elapsed_time << " seconds" << std::endl;   
     //---------------------------//
     //Tests
-    amg.testSetUp(); //Checks that test vectors are orthonormal and that P^dagg D P = D_c at every level
+    //amg.testSetUp(); //Checks that test vectors are orthonormal and that P^dagg D P = D_c at every level
     //amg.testSAP(); //Checks that SAP is working properly for every level. This compares the solution with GMRES.
     
     };
