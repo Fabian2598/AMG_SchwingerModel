@@ -15,15 +15,16 @@ set(SRC_FILES
     src/main.cpp                #Main program
     src/level.cpp               #Class implementation for one level
     src/fgmres.cpp              #Flexible GMRES solver
+    src/tests.cpp               #Class implementation for testing solvers
 )
 
 #--------------------------Lattice dimensions---------------------------#
-set(NS "64") #Space
-set(NT "64") #Time
+set(NS "128") #Space
+set(NT "128") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
-set(LEVELS "2") #Number of AMG levels (Including the finest and coarsest level)
+set(LEVELS "3") #Number of AMG levels (Including the finest and coarsest level)
 #-----------------------------------------------------------------------#
 
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_SOURCE_DIR}/include/config.h)

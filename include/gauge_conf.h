@@ -43,6 +43,7 @@ public:
 
 	std::vector<std::vector<std::complex<double>>> Conf; //Conf[Nx Nt][2] 	
 
+	void read_conf(const std::string& name); //read gauge configuration from .txt file
 private:
 	int Nx, Nt, Ntot;
 };

@@ -2,6 +2,8 @@
 #define ALGEBRAICMG_H_INCLUDED
 
 #include "level.h"
+#include <algorithm>
+#include <random>
 
 class AlgebraicMG{
     /*
@@ -61,9 +63,12 @@ public:
 		}
     }    
     	
-
+    ~AlgebraicMG() {
+        for (auto ptr : levels) delete ptr;
+        for (auto ptr : fgmres_k_cycle_l) delete ptr;
+    }
     //Pages 84 and 85 of Rottmann's thesis explain how to implement this ...
-    void setUpPhase(const double& eps, const int& Nit);
+    void setUpPhase(const int& Nit);
 //private:    
     GaugeConf GConf;
 	double m0; 
@@ -91,9 +96,9 @@ public:
 /*
     FGMRES with a multilevel method as preconditioner
 */
-class FGMRES_amg : public FGMRES {
+class FGMRES_AMG : public FGMRES {
     public:
-    FGMRES_amg(const int& dim1, const int& dim2, const int& m, const int& restarts, const double& tol,
+    FGMRES_AMG(const int& dim1, const int& dim2, const int& m, const int& restarts, const double& tol,
     const GaugeConf& GConf,const double& m0) : FGMRES(dim1, dim2, m, restarts, tol), GConf(GConf),
     m0(m0), dim1(dim1), dim2(dim2), amg(GConf, m0, AMGV::nu1, AMGV::nu2) {
 
@@ -102,7 +107,7 @@ class FGMRES_amg : public FGMRES {
     double elapsed_time;
     double startT, endT;     
     startT = MPI_Wtime();
-    amg.setUpPhase(1, AMGV::Nit); //test vectors intialization
+    amg.setUpPhase(AMGV::Nit); //test vectors intialization
     endT = MPI_Wtime();
     elapsed_time = endT - startT;
     std::cout << "[MPI Process " << rank << "] Elapsed time for Set-up phase = " << elapsed_time << " seconds" << std::endl;   
@@ -112,7 +117,7 @@ class FGMRES_amg : public FGMRES {
     //amg.testSAP(); //Checks that SAP is working properly for every level. This compares the solution with GMRES.
     
     };
-    ~FGMRES_amg() { };
+    ~FGMRES_AMG() { };
     
 private:
     const GaugeConf& GConf; //Gauge configuration

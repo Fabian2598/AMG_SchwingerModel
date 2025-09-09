@@ -1,16 +1,19 @@
 #include "amg.h"
 
-void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
+void AlgebraicMG::setUpPhase(const int& Nit){
     
 	int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	static std::mt19937 randomInt(50); //Same seed for all the MPI copies
+	std::uniform_real_distribution<double> distribution(-1.0, 1.0); //mu, standard deviation
 	
 	//Test vectors random initialization for each level (except the coarsest level)
 	for(int l=0; l<AMGV::levels-1; l++){
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
 		for (int n = 0; n < LevelV::Nsites[l]; n++) {
 		for (int dof = 0; dof < LevelV::DOF[l]; dof++) {
-			levels[l]->interpolator_columns[i][n][dof] = eps * RandomU1();
+			levels[l]->interpolator_columns[i][n][dof] = distribution(randomInt) + I_number * distribution(randomInt);
 		}
 		}
 		}
@@ -22,8 +25,7 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
     for(int l=0; l<AMGV::levels-1; l++){
         spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
-			//Right hand side of the linear system 
-			rhs = levels[l]->interpolator_columns[i];  //I could also leave it as zero
+			//Approximately solving D x = 0
             levels[l]->sap_l.SAP(rhs,levels[l]->interpolator_columns[i],AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc,false);
 		}
 		levels[l]->orthonormalize(); 
@@ -36,15 +38,30 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
     
 	for (int it = 0; it < Nit; it++) {
 		if (rank == 0)std::cout << "****** Bootstrap iteration " << it << " ******" << std::endl;
-		//for (int l = LevelV::maxLevel - 1; l=0; l--){
 		for (int l = 0; l<AMGV::levels-1; l++){
 			spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
+			spinor Dv(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
+			spinor zero(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
 			for (int i = 0; i < LevelV::Ntest[l]; i++) {
-				rhs = levels[l]->interpolator_columns[i];
+				levels[l]->test_vectors[i] = zero; 
+
+				levels[l]->D_operator(levels[l]->interpolator_columns[i], Dv); //Dv = D v
+				for(int n = 0; n < LevelV::Nsites[l]; n++) {
+				for(int dof = 0; dof < LevelV::DOF[l]; dof++) {
+					rhs[n][dof] = levels[l]->interpolator_columns[i][n][dof] - Dv[n][dof]; //rhs = v - D v
+				}
+				}
+
 				if (AMGV::cycle == 0)
 					v_cycle(l, rhs, levels[l]->test_vectors[i]);
 				else if (AMGV::cycle == 1)
 					k_cycle(l, rhs, levels[l]->test_vectors[i]);
+
+				for(int n = 0; n < LevelV::Nsites[l]; n++) {
+				for(int dof = 0; dof < LevelV::DOF[l]; dof++) {
+					levels[l]->test_vectors[i][n][dof] += levels[l]->interpolator_columns[i][n][dof]; //v = v + Cycle(v-Dv)
+				}
+				}
 			}
 			//Build the interpolator between level l and l+1
 			levels[l]->interpolator_columns = levels[l]->test_vectors; 
@@ -55,10 +72,6 @@ void AlgebraicMG::setUpPhase(const double& eps, const int& Nit){
 	
     if (rank == 0)std::cout << "Set-up phase finished" << std::endl;
 	
-	
-    
-	
-
 }
 
 void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
@@ -78,10 +91,9 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		if (AMGV::nu1 > 0)
 			levels[l]->sap_l.SAP(eta_l,psi_l,AMGV::nu1,SAPV::sap_blocks_per_proc,false); 
 		
-
 		//Coarse grid correction 
 		levels[l]->D_operator(psi_l,Dpsi); 
-		for(int n = 0;n < LevelV::Nsites[l]; n++){
+		for(int n = 0; n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
 			r_l[n][dof] = eta_l[n][dof] - Dpsi[n][dof]; //r_l = eta_l - D_l psi_l
 		}
@@ -90,6 +102,7 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		v_cycle(l+1,eta_l_1,psi_l_1); //psi_{l+1} = V-Cycle(l+1,eta_{l+1})
 
 		levels[l]->P_v(psi_l_1,P_psi); //P_psi = P_l psi_{l+1}
+
 		for(int n = 0;n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
 			psi_l[n][dof] += P_psi[n][dof]; //psi_l = psi_l + P_l psi_{l+1}

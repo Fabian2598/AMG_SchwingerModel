@@ -51,7 +51,7 @@ namespace SAPV {
 }
 
 namespace AMGV {
-    int SAP_test_vectors_iterations = 1; //Number of SAP iterations to smooth test vectors
+    int SAP_test_vectors_iterations = 2; //Number of SAP iterations to smooth test vectors
     //Parameters for the coarse level solver. They can be changed in the main function
     int gmres_restarts_coarse_level = 10; 
     int gmres_restart_length_coarse_level = 20; //GMRES restart length for the coarse level
@@ -94,6 +94,76 @@ std::vector<std::vector<std::vector<c_double>>> SignR_l = std::vector<std::vecto
     (LEVELS,std::vector<std::vector<c_double>>(LV::Ntot,std::vector<c_double>(2,0)) );
 std::vector<std::vector<std::vector<c_double>>> SignL_l = std::vector<std::vector<std::vector<c_double>>>
     (LEVELS,std::vector<std::vector<c_double>>(LV::Ntot,std::vector<c_double>(2,0)) );
+
+
+
+void save_vec(const std::vector<double>& vec,const std::string& Name){
+    std::ofstream Datfile(Name);
+    if (!Datfile.is_open()) {
+        std::cerr << "Error opening file: " << Name << std::endl;
+        return;
+    }
+    int size = vec.size();
+    for (int n = 0; n < size; n++) {
+        Datfile << n
+                << std::setw(30) << std::setprecision(17) << std::scientific << vec[n]
+                << "\n";
+    }
+        
+    
+}
+
+void read_rhs(std::vector<std::vector<c_double>>& vec,const std::string& name){
+    std::ifstream infile(name);
+    if (!infile) {
+        std::cerr << "File " << name << " not found" << std::endl;
+    }
+    int x, t, mu;
+    double re, im;
+    //x, t, mu, real part, imaginary part
+    while (infile >> x >> t >> mu >> re >> im) {
+        vec[Coords[x][t]][mu] = c_double(re, im); 
+    }
+    infile.close();
+  
+}
+
+void save_rhs(std::vector<std::vector<c_double>>& rhs,const std::string& name){
+    std::ofstream rhsfile(name);
+    if (!rhsfile.is_open()) {
+        std::cerr << "Error opening rhs.txt for writing." << std::endl;
+    } 
+    else {
+        int x,t;
+        //x, t, mu, real part, imaginary part
+        for (int n = 0; n < LV::Ntot; ++n) {
+            x = n/LV::Nt;
+            t = n%LV::Nt;
+            rhsfile << x << std::setw(30) << t << std::setw(30) << 0 << std::setw(30)
+                    << std::setprecision(17) << std::scientific << std::real(rhs[n][0]) << std::setw(30)
+                    << std::setprecision(17) << std::scientific << std::imag(rhs[n][0]) << "\n";
+
+            rhsfile << x << std::setw(30) << t << std::setw(30) << 1 << std::setw(30)
+                    << std::setprecision(17) << std::scientific << std::real(rhs[n][1]) << std::setw(30)
+                    << std::setprecision(17) << std::scientific << std::imag(rhs[n][1]) << "\n";
+          
+        }
+        rhsfile.close();
+    }
+
+}
+
+
+void random_rhs(std::vector<std::vector<c_double>>& vec,const int seed){
+    c_double I_number(0,1);
+    static std::mt19937 randomInt(seed);
+	std::uniform_real_distribution<double> distribution(-1.0, 1.0); //mu, standard deviation
+    for(int i = 0; i < LV::Ntot; i++) {
+        vec[i][0] = distribution(randomInt) + I_number * distribution(randomInt); //RandomU1();
+        vec[i][1] = distribution(randomInt) + I_number * distribution(randomInt);
+    }
+
+}
 
 
 void printParameters(){

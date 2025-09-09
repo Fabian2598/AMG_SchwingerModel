@@ -4,6 +4,10 @@
 #include <iostream>
 #include <complex>
 #include <vector>
+#include <string>
+#include <fstream>
+#include <iomanip>
+#include <random>
 
 typedef std::complex<double> c_double;
 constexpr c_double I_number(0, 1);
@@ -109,6 +113,13 @@ extern std::vector<std::vector<std::vector<int>>>RightPB_l; //Right periodic bou
 extern std::vector<std::vector<std::vector<int>>>LeftPB_l; //Left periodic boundary
 extern std::vector<std::vector<std::vector<c_double>>>SignR_l; //Right fermionic boundary
 extern std::vector<std::vector<std::vector<c_double>>>SignL_l; //Left fermionic boundary
+
+
+void save_vec(const std::vector<double>& vec,const std::string& name); //save vector to .txt file 
+void read_rhs(std::vector<std::vector<c_double>>& vec,const std::string& name);
+void save_rhs(std::vector<std::vector<c_double>>& vec,const std::string& name);
+void random_rhs(std::vector<std::vector<c_double>>& vec,const int seed);
+
 
 /*
     Print relevant parameters

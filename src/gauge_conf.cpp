@@ -15,4 +15,19 @@ void GaugeConf::initialize() {
 	}
 }
 
+void GaugeConf::read_conf(const std::string& name){
+    std::ifstream infile(name);
+    if (!infile) {
+        std::cerr << "File " << name << " not found " << std::endl;
+        exit(1);
+    }
+    int x, t, mu;
+    double re, im; 
+    while (infile >> x >> t >> mu >> re >> im) {
+        Conf[Coords[x][t]][mu] = c_double(re, im); 
+    }
+    infile.close();
+    std::cout << "Conf read from " << name << std::endl;
+    
+}
 

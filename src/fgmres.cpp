@@ -11,7 +11,7 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
     axpy(phi,Dx, -1.0, r); //r = b - A*x
 	double norm_phi = sqrt(std::real(dot(phi, phi))); //norm of the right hand side
     err = sqrt(std::real(dot(r, r))); //Initial error
-    
+    int maxIt = m;
     while (k < restarts) {
         beta = err + 0.0 * I_number;
         scal(1.0/beta, r,VmT[0]); //VmT[0] = r / ||r||
@@ -41,13 +41,17 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
             //Rotate gm
             gm[j + 1] = -sn[j] * gm[j];
             gm[j] = std::conj(cn[j]) * gm[j];
+            if (std::abs(gm[j+1]) < tol* norm_phi){
+                maxIt = j+1;
+                break;
+            }
         }        
         //Solve the upper triangular system//
-		solve_upper_triangular(Hm, gm,m,eta);
+		solve_upper_triangular(Hm, gm,maxIt,eta);
         
         for (int i = 0; i < dim1 * dim2; i++) {
             int n = i / dim2; int mu = i % dim2;
-            for (int j = 0; j < m; j++) {
+            for (int j = 0; j < maxIt; j++) {
                 x[n][mu] = x[n][mu] + eta[j] * ZmT[j][n][mu]; 
             }
         }
@@ -58,16 +62,17 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
         err = sqrt(std::real(dot(r, r)));
         if (err < tol* norm_phi) {
             if (print_message == true) {
-             std::cout << "FGMRES converged in " << k + 1 << " cycles" << " Error " << err << std::endl;
+                std::cout << "FGMRES converged in " << k + 1 << " cycles" << " Error " << err << std::endl;
+                std::cout << "With " << k*m + maxIt  << " iterations" <<  std::endl;
             }
-            return 1;
+            return k*m + maxIt;;
         }
         k++;
     }
     if (print_message == true) {
         std::cout << "FGMRES did not converge in " << restarts << " cycles" << " Error " << err << std::endl;
     }
-    return 0;
+    return restarts*m;
 }
 
 void FGMRES::rotation(const int& j) {
