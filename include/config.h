@@ -2,6 +2,6 @@
 #define CONFIG_H
 #define NS 128
 #define NT 128
-#define LEVELS 3
+#define LEVELS 2
 
 #endif

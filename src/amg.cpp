@@ -8,6 +8,44 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 	static std::mt19937 randomInt(50); //Same seed for all the MPI copies
 	std::uniform_real_distribution<double> distribution(-1.0, 1.0); //mu, standard deviation
 	
+
+	//Generate test vectors at the fine level
+	for (int i = 0; i < LevelV::Ntest[0]; i++) {
+		for (int n = 0; n < LevelV::Nsites[0]; n++) {
+		for (int dof = 0; dof < LevelV::DOF[0]; dof++) {
+			levels[0]->interpolator_columns[i][n][dof] = distribution(randomInt) + I_number * distribution(randomInt);
+		}
+		}
+	}
+	
+	//v_l = P^dagger v_{l-1}
+	for(int l=1; l<AMGV::levels-1; l++){
+		for(int i = 0; i<LevelV::Ntest[l];i++){
+			if (i<LevelV::Ntest[0]){
+				levels[l-1]->Pt_v(levels[l-1]->interpolator_columns[i],levels[l]->interpolator_columns[i]);
+			}
+			else{
+				for (int n = 0; n < LevelV::Nsites[0]; n++) {
+				for (int dof = 0; dof < LevelV::DOF[0]; dof++) {
+					levels[l]->interpolator_columns[i][n][dof] =  distribution(randomInt) + I_number * distribution(randomInt);
+				}	
+				}
+			}
+		}
+	}
+
+	//Smoothing the test vectors
+    for(int l=0; l<AMGV::levels-1; l++){
+        spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
+		for (int i = 0; i < LevelV::Ntest[l]; i++) {
+			//Approximately solving D x = 0
+            levels[l]->sap_l.SAP(rhs,levels[l]->interpolator_columns[i],AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc,false);
+		}
+		levels[l]->orthonormalize(); 
+		levels[l]->makeCoarseLinks(*levels[l+1]); 
+	}
+
+	/*
 	//Test vectors random initialization for each level (except the coarsest level)
 	for(int l=0; l<AMGV::levels-1; l++){
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
@@ -31,6 +69,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 		levels[l]->orthonormalize(); 
 		levels[l]->makeCoarseLinks(*levels[l+1]); 
 	}
+	*/
 
 	//Adaptivity part
 	

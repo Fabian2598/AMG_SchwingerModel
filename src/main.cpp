@@ -81,10 +81,10 @@ int main(int argc, char **argv) {
     //Reading Conf
     {
         std::ostringstream NameData;
-         NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
-        format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
-        //NameData << "C:/Users/jafan/Downloads/Conf/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         //format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
+        NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
         //std::cout << "Reading conf from file: " << NameData.str() << std::endl;
         GConf.read_conf(NameData.str());
     }
@@ -98,7 +98,8 @@ int main(int argc, char **argv) {
     spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
     std::ostringstream FileName;
-    FileName << "../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
+    //FileName << "../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
+    FileName << "../../SchwingerModelFermions/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
     read_rhs(rhs,FileName.str());
     //random_rhs(rhs,10);
     
@@ -125,10 +126,10 @@ int main(int argc, char **argv) {
         test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
     }
 
-
+    MPI_Barrier(MPI_COMM_WORLD);
     double Iter[3];
     double dIter[3];
-    for(int i = 0; i < 3; i++){
+    for(int i = 0; i < 1; i++){
 
     AMGV::Nit = 3*i;
     if (rank == 0) std::cout << "Number of iterations for improving the interpolator: " << AMGV::Nit << std::endl;

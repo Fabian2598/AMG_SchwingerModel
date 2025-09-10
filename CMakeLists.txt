@@ -24,7 +24,7 @@ set(NT "128") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
-set(LEVELS "3") #Number of AMG levels (Including the finest and coarsest level)
+set(LEVELS "2") #Number of AMG levels (Including the finest and coarsest level)
 #-----------------------------------------------------------------------#
 
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_SOURCE_DIR}/include/config.h)
