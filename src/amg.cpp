@@ -21,12 +21,12 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 	//v_l = P^dagger v_{l-1}
 	for(int l=1; l<AMGV::levels-1; l++){
 		for(int i = 0; i<LevelV::Ntest[l];i++){
-			if (i<LevelV::Ntest[0]){
+			if (i<LevelV::Ntest[l-1]){
 				levels[l-1]->Pt_v(levels[l-1]->interpolator_columns[i],levels[l]->interpolator_columns[i]);
 			}
 			else{
-				for (int n = 0; n < LevelV::Nsites[0]; n++) {
-				for (int dof = 0; dof < LevelV::DOF[0]; dof++) {
+				for (int n = 0; n < LevelV::Nsites[l]; n++) {
+				for (int dof = 0; dof < LevelV::DOF[l]; dof++) {
 					levels[l]->interpolator_columns[i][n][dof] =  distribution(randomInt) + I_number * distribution(randomInt);
 				}	
 				}

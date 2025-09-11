@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     Coordinates(); //Builds array with coordinates of the lattice points x * Nt + t
     boundary(); //Boundaries for every level
 
-    AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
+    AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
     AMGV::Nit = 1;
     AMGV::SAP_test_vectors_iterations = 4;
     mass::m0 = -0.18840579710144945;
@@ -81,9 +81,8 @@ int main(int argc, char **argv) {
     //Reading Conf
     {
         std::ostringstream NameData;
-        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
-        //format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
-        NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        //NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
         //std::cout << "Reading conf from file: " << NameData.str() << std::endl;
         GConf.read_conf(NameData.str());
@@ -98,8 +97,8 @@ int main(int argc, char **argv) {
     spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
     std::ostringstream FileName;
-    //FileName << "../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
-    FileName << "../../SchwingerModelFermions/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
+    FileName << "../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
+    //FileName << "../../SchwingerModelFermions/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
     read_rhs(rhs,FileName.str());
     //random_rhs(rhs,10);
     
@@ -122,25 +121,28 @@ int main(int argc, char **argv) {
     
     Tests test(GConf, rhs, x0 ,m0);
     if (rank == 0){
-        test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
-        test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
+        //test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
+        //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    double Iter[3];
-    double dIter[3];
-    for(int i = 0; i < 1; i++){
+    double Iter[3]; double exTime[3];
+    double dIter[3]; double dexTime[3];
+    const int Meas = 10;
+    for(int i = 0; i < 3; i++){
 
-    AMGV::Nit = 3*i;
+    AMGV::Nit = 2*i;
     if (rank == 0) std::cout << "Number of iterations for improving the interpolator: " << AMGV::Nit << std::endl;
 
-    int Meas = 10;
+    
     std::vector<double> iterations(Meas,0);
+    std::vector<double> times(Meas,0);
     if (rank == 0) std::cout << "--------------Flexible GMRES with AMG preconditioning--------------" << std::endl;
 
     for(int i = 0; i < Meas; i++){
         if (rank == 0) std::cout << "Meas " << i << std::endl;
         iterations[i] = test.fgmresAMG(xFAMG, true);
+        times[i] = total_time;
     }
     if (rank == 0){
         std::cout << "Average iteration number over " << Meas << " runs: " << mean(iterations) << " +- " 
@@ -150,17 +152,20 @@ int main(int argc, char **argv) {
 
     Iter[i] = mean(iterations);
     dIter[i] = standard_deviation(iterations)/sqrt(1.0*Meas);
+    exTime[i] = mean(times);
+    dexTime[i] = standard_deviation(times)/sqrt(1.0*Meas);
 
     }
 
     for(int i = 0; i < 3; i++){
-        if (rank == 0) std::cout << "Nit: " << 3*i << " Iter: " << Iter[i] << " +- " << dIter[i] << std::endl;
-    }
+        if (rank == 0) std::cout << "Nit: " << 2*i << " Iter: " << Iter[i] << " +- " << dIter[i] << std::endl;
 
+    }
+    if (rank == 0)
+        saveParameters(Iter, dIter, exTime, dexTime, 3,nconf);
 
     
     //test.multigrid(xAMG,true); //Multigrid as stand-alone solver
-    
     //test.check_solution(xFAMG); //Check that the solution is correct
 
     MPI_Finalize();

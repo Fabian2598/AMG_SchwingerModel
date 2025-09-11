@@ -3,6 +3,7 @@
 typedef std::complex<double> c_double;
 double coarse_time = 0.0; //Time spent in the coarse grid solver
 double smooth_time = 0.0; //Time spent in the smoother
+double total_time = 0.0;
 
 
 std::vector<std::vector<int>>Coords = std::vector<std::vector<int>>(LV::Nx, std::vector<int>(LV::Nt, 0));
@@ -217,5 +218,73 @@ void printParameters(){
         std::cout << "| FGMRES restarts = " << FGMRESV::fgmres_restarts << std::endl;
         std::cout << "| FGMRES tolerance = " << FGMRESV::fgmres_tolerance << std::endl;
         std::cout << "*****************************************************************************************************" << std::endl;
+
+}
+
+
+
+void saveParameters(double *Iter, double *dIter, double *exTime, double *dexTime, const int nMeas, const int nconf){
+    std::ostringstream FileName;
+    FileName << "metadata_" << LV::Nx << "_Nt" << LV::Nt << "_Levels" << AMGV::levels; 
+    if (AMGV::cycle == 0)
+        FileName << "_Vcycle"; 
+    else 
+        FileName << "_Kcycle";
+    FileName << ".dat";
+    
+    std::ofstream metadata(FileName.str());
+    if (!metadata.is_open()) {
+        std::cerr << "Error opening naming metadata_NXxNT_Levels_Ntest_Cycle.txt for writing." << std::endl;
+    } 
+    else {
+
+        metadata << "#level, blocks_x, blocks_t, Ntest, SAP_blocks_x, SAP_blocks_t\n";
+        for (int l = 0; l < AMGV::levels-1; l++) {
+            metadata << l << std::setw(5) << LevelV::BlocksX[l] << std::setw(5) << LevelV::BlocksT[l] << std::setw(5) 
+                     << LevelV::Ntest[l]  << std::setw(5) << LevelV::SAP_Block_x[l] << std::setw(5) << LevelV::SAP_Block_t[l] << "\n"; 
+        }
+        metadata << "#SAP_test_vectors_iterations\n";
+        metadata << AMGV::SAP_test_vectors_iterations << "\n"; //Number of smoothing iterations for the test vectors
+        metadata << "#cycle (0 = V, 1 = K)\n";
+        metadata << AMGV::cycle << "\n"; //Cycle type
+        metadata << "#Pre-smoothing nu1, Post-smoothing nu2\n";
+        metadata << AMGV::nu1 << std::setw(5) << AMGV::nu2 << "\n"; //Pre and post smoothing iterations
+        metadata << "#sap gmres restart length, sap gmres restarts, sap gmres tolerance\n";
+        metadata << SAPV::sap_gmres_restart_length << std::setw(5) << SAPV::sap_gmres_restarts << std::setw(15) 
+                 << std::scientific << std::setprecision(7) << SAPV::sap_gmres_tolerance << "\n";
+        metadata << "#GMRES restart length coarse level, GMRES restarts coarse level, GMRES tolerance coarse level\n";
+        metadata << LevelV::GMRES_restart_len[LevelV::maxLevel] << std::setw(5) << LevelV::GMRES_restarts[LevelV::maxLevel] << std::setw(15) 
+                 << std::scientific << std::setprecision(7) << LevelV::GMRES_tol[LevelV::maxLevel] << "\n";
+        metadata << "#FGMRES restart length, FGMRES restarts, FGMRES tolerance\n";
+        metadata << FGMRESV::fgmres_restart_length << std::setw(5) << FGMRESV::fgmres_restarts << std::setw(15) 
+                 << std::scientific << std::setprecision(7) << FGMRESV::fgmres_tolerance << "\n";
+        metadata << "#Configuration ID analyzed: " << "\n";
+        metadata << nconf << "\n";
+        
+    }
+    metadata.close();
+ 
+    std::ostringstream FileName2;
+    FileName2 << "results" << LV::Nx << "_Nt" << LV::Nt << "_Levels" << AMGV::levels; 
+    if (AMGV::cycle == 0)
+        FileName2 << "_Vcycle"; 
+    else 
+        FileName2 << "_Kcycle";
+    FileName2 << ".out";
+    std::ofstream results(FileName2.str());
+    if (!results.is_open()) {
+        std::cerr << "Error opening naming results_NXxNT_Levels_Ntest_Cycle.txt for writing." << std::endl;
+    } 
+    
+    else {
+        results << "#Nit  Iterations  dIterations  exTime  dexTime\n";
+        for (int i = 0; i < nMeas; i++) {
+            results << 2*i << std::setw(15) << std::scientific << std::setprecision(7) << Iter[i] 
+                    << std::setw(15) << std::scientific << std::setprecision(7) << dIter[i]
+                    << std::setw(15) << std::scientific << std::setprecision(7) << exTime[i]
+                    << std::setw(15) << std::scientific << std::setprecision(7) << dexTime[i] << "\n";
+        }
+    }
+    results.close();
 
 }

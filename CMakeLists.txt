@@ -19,24 +19,24 @@ set(SRC_FILES
 )
 
 #--------------------------Lattice dimensions---------------------------#
-set(NS "128") #Space
-set(NT "128") #Time
+set(NS "256") #Space
+set(NT "256") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
-set(LEVELS "2") #Number of AMG levels (Including the finest and coarsest level)
+set(LEVELS "4") #Number of AMG levels (Including the finest and coarsest level)
 #-----------------------------------------------------------------------#
 
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_SOURCE_DIR}/include/config.h)
 
-add_executable("SM_${NS}x${NT}" ${SRC_FILES})
+add_executable("AMG_${NS}x${NT}_l${LEVELS}" ${SRC_FILES})
 
-target_include_directories("SM_${NS}x${NT}"
+target_include_directories("AMG_${NS}x${NT}_l${LEVELS}"
         PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_options("SM_${NS}x${NT}" PRIVATE
+target_compile_options("AMG_${NS}x${NT}_l${LEVELS}" PRIVATE
             #-Wall
 			-O3
             #-g
@@ -45,7 +45,7 @@ target_compile_options("SM_${NS}x${NT}" PRIVATE
 
 find_package(MPI REQUIRED)
 
-target_link_libraries("SM_${NS}x${NT}" PUBLIC MPI::MPI_CXX)
+target_link_libraries("AMG_${NS}x${NT}_l${LEVELS}" PUBLIC MPI::MPI_CXX)
 
 #find_package(BLAS)
 #include_directories(" /usr/include/cblas/")

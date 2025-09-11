@@ -72,7 +72,8 @@ int Tests::fgmresAMG(spinor& x, const bool print){
     FGMRES_AMG f_amg(LV::Ntot, 2,  FGMRESV::fgmres_restart_length, FGMRESV::fgmres_restarts,FGMRESV::fgmres_tolerance,GConf, m0);
     iter = f_amg.fgmres(rhs,x0,x,print);
     endT = MPI_Wtime();
-    printf("[MPI process %d] time elapsed during the job: %.4fs.\n", rank, endT - startT);
+    total_time = endT - startT;
+    printf("[MPI process %d] time elapsed during the job: %.4fs.\n", rank, total_time);
     return iter;
 }
 

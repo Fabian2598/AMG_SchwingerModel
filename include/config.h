@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#define NS 128
-#define NT 128
-#define LEVELS 2
+#define NS 256
+#define NT 256
+#define LEVELS 4
 
 #endif

@@ -15,6 +15,7 @@ constexpr double pi=3.14159265359;
 
 extern double coarse_time; //Time spent in the coarse grid solver
 extern double smooth_time; //Time spent in the smoother
+extern double total_time; //Total time spent in the multigrid solver
 
 namespace mass{
     extern double m0;
@@ -125,5 +126,8 @@ void random_rhs(std::vector<std::vector<c_double>>& vec,const int seed);
     Print relevant parameters
 */
 void printParameters();
+
+void saveParameters(double *Iter, double *dIter, double *exTime, double *dexTime, const int nMeas,const int nconf);
+
 
 #endif 
