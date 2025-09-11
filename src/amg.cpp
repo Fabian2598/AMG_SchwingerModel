@@ -45,32 +45,6 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 		levels[l]->makeCoarseLinks(*levels[l+1]); 
 	}
 
-	/*
-	//Test vectors random initialization for each level (except the coarsest level)
-	for(int l=0; l<AMGV::levels-1; l++){
-		for (int i = 0; i < LevelV::Ntest[l]; i++) {
-		for (int n = 0; n < LevelV::Nsites[l]; n++) {
-		for (int dof = 0; dof < LevelV::DOF[l]; dof++) {
-			levels[l]->interpolator_columns[i][n][dof] = distribution(randomInt) + I_number * distribution(randomInt);
-		}
-		}
-		}
-	}
-	
-   
-    
-    //Smoothing the test vectors
-    for(int l=0; l<AMGV::levels-1; l++){
-        spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
-		for (int i = 0; i < LevelV::Ntest[l]; i++) {
-			//Approximately solving D x = 0
-            levels[l]->sap_l.SAP(rhs,levels[l]->interpolator_columns[i],AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc,false);
-		}
-		levels[l]->orthonormalize(); 
-		levels[l]->makeCoarseLinks(*levels[l+1]); 
-	}
-	*/
-
 	//Adaptivity part
 	
     if (rank == 0)std::cout << "Improving interpolator" << std::endl;
