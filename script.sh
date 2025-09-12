@@ -6,7 +6,7 @@ COMPILE=1
 if [ $COMPILE -eq 1 ]; then
     echo "Compiling"
 # Loop over different NS, NT, and LEVELS vales
-  for NS in 64 128 256; do
+  for NS in 256; do
   for LEVELS in 2 3 4; do
     NT=$NS
     # Update NS and NT (lines 22 and 23)
@@ -18,7 +18,7 @@ if [ $COMPILE -eq 1 ]; then
     mkdir -p build
     cd build
     cmake ..
-    make -j$(nproc)
+    make -j 8
     cd ..
   done
   done
@@ -29,17 +29,17 @@ fi
 
 #run program 
 
-for NS in 64 128 256; do
+for NS in 256; do
     NT=$NS
     rm parameters.dat
-    printf "0 4 4 10 4 4" >> parameters.dat
+    printf "0 4 4 20 4 4" >> parameters.dat
     echo "--------Running for NS=${NS}, NT=${NT}, LEVELS=2--------"
     cd build
     mpirun -np 8 AMG_${NS}x${NT}_l2
     cd ..
 
     rm parameters.dat
-    printf "0 8 8 10 4 4\n1 4 4 10 4 4" >> parameters.dat
+    printf "0 8 8 20 4 4\n1 4 4 20 4 4" >> parameters.dat
     echo "--------Running for NS=${NS}, NT=${NT}, LEVELS=3--------"
     cd build
     mpirun -np 8 AMG_${NS}x${NT}_l3
@@ -47,7 +47,7 @@ for NS in 64 128 256; do
 
 
     rm parameters.dat
-    printf "0 8 8 10 4 4\n1 4 4 10 4 4\n2 2 2 10 2 2" >> parameters.dat
+    printf "0 8 8 20 4 4\n1 4 4 20 4 4\n2 2 2 20 2 2" >> parameters.dat
     echo "--------Running for NS=${NS}, NT=${NT}, LEVELS=4--------"
     cd build
     mpirun -np 8 AMG_${NS}x${NT}_l4

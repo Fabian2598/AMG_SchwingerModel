@@ -225,7 +225,7 @@ void printParameters(){
 
 void saveParameters(double *Iter, double *dIter, double *exTime, double *dexTime, const int nMeas, const int nconf){
     std::ostringstream FileName;
-    FileName << "metadata_" << LV::Nx << "_Nt" << LV::Nt << "_Levels" << AMGV::levels; 
+    FileName << "metadata_" << LV::Nx << "x" << LV::Nt << "_Levels" << AMGV::levels; 
     if (AMGV::cycle == 0)
         FileName << "_Vcycle"; 
     else 
@@ -265,7 +265,7 @@ void saveParameters(double *Iter, double *dIter, double *exTime, double *dexTime
     metadata.close();
  
     std::ostringstream FileName2;
-    FileName2 << "results" << LV::Nx << "_Nt" << LV::Nt << "_Levels" << AMGV::levels; 
+    FileName2 << "results_" << LV::Nx << "x" << LV::Nt << "_Levels" << AMGV::levels; 
     if (AMGV::cycle == 0)
         FileName2 << "_Vcycle"; 
     else 

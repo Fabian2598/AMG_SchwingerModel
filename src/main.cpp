@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     Coordinates(); //Builds array with coordinates of the lattice points x * Nt + t
     boundary(); //Boundaries for every level
 
-    AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
+    AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
     AMGV::Nit = 1;
     AMGV::SAP_test_vectors_iterations = 4;
     mass::m0 = -0.18840579710144945;
