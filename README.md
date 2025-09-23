@@ -1,26 +1,26 @@
 # Algebraic Multigrid Method for the Schwinger model.
-Implementation of Algebric Multigrid Method for the Schwinger model in the context of Lattice simulations. 
 
-Work in progress ...
+Implementation of DD$\alpha$AMG for the Schwinger model. The solver is introduced in 
 
-- [x] Make aggregates and lattice blocks.
-- [x] Implement restriction and interpolation.
-- [x] Implement coarse gauge fields.
-    - [x] Test implementation for the two-level case.
-    - [x] Implement boundary conditions for all the levels.
-    - [x] Implement Level::makeCoarseLinks(Level& next_level) in the general scenario, without calling the $U_\mu$ variables.
-    - [x] Orthonormalize test vectors.
-    - [x] Check that $P^\dagger D P$ coincides with my coarse gauge implementation for all levels.
-    - [x] Test the implementation for several levels (Tested up to four levels).
-- [x] Implement coarse grid matrix.
-- [x] Implement SAP for each level
-    - [x] Rewrite method for the Level0 and check that it coincide with the previous implementation
-    - [x] Test the method for the coarser levels. Compare the convergence of the solution with GMRES and check that the inversion is working properly.
-- [x] Integrate everything in a V-cycle.
-- [X] Implement a K-cycle.
-- [x] Use the method as a preconditioner for FGMRES.
-- [x] Perform simple convergence tests for $V = 32^2, 64^2, 128^2$.
-- [x] Compare the two-grid, the K-cycle and the V-cycle used as preconditioners for the FGMRES with the confs that I already have.
-- [ ] Improve (?) the SetUp phase properly.
-- [ ] Improve the performance and clean the code. 
-- [ ] Extensively document the code.
+
+- A. Frommer et al. “Adaptive Aggregation-Based Domain Decomposition Multigrid for the Lattice Wilson-Dirac Operator”, SIAM, 36 (2014).
+
+As smoother we use Schwarz Alternating Procedure (SAP), a red/black decomposition method. Details of this method are in 
+
+- M. Lüscher. “Solution of the Dirac equation in lattice QCD using a domain decomposition method”, Comput. Phys. Commun., 156 (2004).
+
+We simultaneously solve the local systems on the blocks of the same color with MPI. The solver for the local systems is GMRES.
+
+The interpolator is build with an aggregation based-approach and by generating a set of test vectors that approximate the *near-kernel*. The multilevel method is used as a preconditioner for FGMRES.
+
+We set the lattice dimensions and number of levels for the multilevel solver in `CMakeListst.txt`. 
+
+`parameters.dat` has the information of the number of test vectors and lattice blocking. On each row one writes
+
+`level, blocks_x, blocks_t, SAP blocks_x, SAP blocks_t`
+
+where level is the id of the grid level (the finest level has id 0); blocks_x and blocks_t the number of lattice blocks on each direction for the aggregation; SAP blocks_x and SAP blocks_t the number of lattice blocks for SAP. 
+
+Conceptual details about the implementation are in the PDF file.
+
+
