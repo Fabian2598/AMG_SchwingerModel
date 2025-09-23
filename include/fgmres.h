@@ -33,7 +33,7 @@ class FGMRES{
 
 	~FGMRES() { };
 
-    int fgmres(const spinor&phi, const spinor& x0, spinor& x, const bool& print_message = false); //1 --> converged, 0 --> not converged
+    int fgmres(const spinor&phi, const spinor& x0, spinor& x, const bool& print_message = false,const bool save_res = false); //1 --> converged, 0 --> not converged
 
     private:
 
@@ -58,6 +58,7 @@ class FGMRES{
     spinor w;
     spinor Dx; //auxiliary spinor
     c_double beta; //not 1/g^2 from simulations
+    std::vector<double> Residuals; //for storing the residuals at each iteration
 
 
     /*

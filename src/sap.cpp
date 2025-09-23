@@ -58,7 +58,7 @@ void SAP_C::I_D_B_1_It(const spinor& v, spinor& x,const int& block){
      
     set_zeros(x,lattice_sites_per_block,spins*colors); //Initialize x to zero
     gmres_DB.set_block(block); //Set the block index for the GMRES_D_B operator
-    gmres_DB.fgmres(temp,temp,x, print_message); //Call the GMRES solver 
+    gmres_DB.fgmres(temp,temp,x, print_message,false); //Call the GMRES solver 
 }
 
 int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_proc,const bool& print){

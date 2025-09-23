@@ -3,7 +3,8 @@
 
 //Solves Dx x = phi with the Bi-CGstab method
 spinor bi_cgstab(void (*func)(const c_matrix&, const spinor&, spinor&,const double&), const int& dim1, const int& dim2,
-const c_matrix& U, const spinor& phi, const spinor& x0, const double& m0, const int& max_iter, const double& tol, const bool& print_message) {
+const c_matrix& U, const spinor& phi, const spinor& x0, const double& m0, const int& max_iter, const double& tol, const bool& print_message
+,const bool& save_residuals) {
 
     int k = 0; //Iteration number
     double err; // ||r||
@@ -15,7 +16,9 @@ const c_matrix& U, const spinor& phi, const spinor& x0, const double& m0, const 
     spinor t(dim1, c_vector(dim2, 0));
     spinor Ad(dim1, c_vector(dim2, 0)); //D*d
     spinor x(dim1, c_vector(dim2, 0)); //solution
-    c_double alpha, beta, rho_i, omega, rho_i_2;;
+    c_double alpha, beta, rho_i, omega, rho_i_2;
+
+    std::vector<double> ResidualsBiCG;
     x = x0; //initial solution
     spinor Dphi(dim1, c_vector(dim2, 0)); //Temporary spinor for D x
     func(U, x, Dphi, m0);
@@ -48,11 +51,18 @@ const c_matrix& U, const spinor& phi, const spinor& x0, const double& m0, const 
         }
 
         err = sqrt(std::real(dot(s, s)));
+        if (save_residuals) ResidualsBiCG.push_back(err);
         
         if (err < tol * norm_phi) {
             axpy(x,d, alpha, x); //x = x + alpha * d;
             if (print_message == true) {
                 std::cout << "Bi-CG-stab for D converged in " << k+1 << " iterations" << " Error " << err << std::endl;
+            }
+            if (save_residuals){
+                std::ostringstream FileName;
+                FileName << "Residuals_BiCG_" << LV::Nx << "x" << LV::Nt; 
+                FileName << ".res";
+                save_vec(ResidualsBiCG, FileName.str());
             }
             return x;
         }
@@ -73,6 +83,8 @@ const c_matrix& U, const spinor& phi, const spinor& x0, const double& m0, const 
     if (print_message == true) {
         std::cout << "Bi-CG-stab for D did not converge in " << max_iter << " iterations" << " Error " << err << std::endl;
     }
+    if (save_residuals) save_vec(ResidualsBiCG, "Residuals_BiCG.dat");
+
     return x;
 }
 

@@ -2,7 +2,7 @@
 #include "iomanip"
 
 //------Class FGMRES implementation------//
-int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& print_message) { 
+int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& print_message,const bool save_res) { 
     setZeros();
     int k = 0; //Restart cycle)
     double err;
@@ -41,6 +41,8 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
             //Rotate gm
             gm[j + 1] = -sn[j] * gm[j];
             gm[j] = std::conj(cn[j]) * gm[j];
+            if (save_res) Residuals.push_back(std::abs(gm[j + 1]));
+
             if (std::abs(gm[j+1]) < tol* norm_phi){
                 maxIt = j+1;
                 break;
@@ -64,6 +66,16 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
             if (print_message == true) {
                 std::cout << "FGMRES converged in " << k + 1 << " cycles" << " Error " << err << std::endl;
                 std::cout << "With " << k*m + maxIt  << " iterations" <<  std::endl;
+            }
+            if (save_res){
+                std::ostringstream FileName;
+                FileName << "Residuals_FGMRES_" << LV::Nx << "x" << LV::Nt << "_Levels" << AMGV::levels; 
+                if (AMGV::cycle == 0)
+                    FileName << "_Vcycle"; 
+                else 
+                    FileName << "_Kcycle";
+                FileName << ".res";
+                save_vec(Residuals, FileName.str());
             }
             return k*m + maxIt;;
         }

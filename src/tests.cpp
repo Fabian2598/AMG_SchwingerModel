@@ -1,19 +1,21 @@
 #include "tests.h"
 
 void Tests::BiCG(spinor& x,const int max_it, const bool print){   
+    const bool save = false;
     std::cout << "--------------Bi-CGstab inversion--------------" << std::endl;
     start = clock();
-    x = bi_cgstab(&D_phi,LV::Ntot,2,GConf.Conf, rhs, x0, m0, max_it, 1e-10, print);
+    x = bi_cgstab(&D_phi,LV::Ntot,2,GConf.Conf, rhs, x0, m0, max_it, 1e-10, print,save);
     end = clock();
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     std::cout << "Elapsed time for Bi-CGstab = " << elapsed_time << " seconds" << std::endl;
 }
 
 void Tests::GMRES(spinor& x, const int len, const int restarts,const bool print){
+    const bool save = false;
     std::cout << "--------------GMRES without preconditioning--------------" << std::endl;
     FGMRES_fine_level fgmres_fine_level(LV::Ntot, 2, len, restarts,1e-10,GConf.Conf, m0);
     start = clock();
-    fgmres_fine_level.fgmres(rhs,x0,x,print);
+    fgmres_fine_level.fgmres(rhs,x0,x,print,save);
     end = clock();
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     std::cout << "Elapsed time for GMRES = " << elapsed_time << " seconds" << std::endl; 
@@ -29,6 +31,7 @@ void Tests::CG(spinor& x){
 }
 
 void Tests::FGMRES_sap(spinor& x, const bool print){
+    const bool save = false;
     int rank, size; 
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -38,7 +41,7 @@ void Tests::FGMRES_sap(spinor& x, const bool print){
     MPI_Barrier(MPI_COMM_WORLD);
     FGMRES_SAP fgmres_sap(LV::Ntot, 2, FGMRESV::fgmres_restart_length, FGMRESV::fgmres_restarts,FGMRESV::fgmres_tolerance,GConf.Conf, m0);
     startT = MPI_Wtime();
-    fgmres_sap.fgmres(rhs,x0,x,print);
+    fgmres_sap.fgmres(rhs,x0,x,print,save);
     endT = MPI_Wtime();
     printf("[rank %d] time elapsed during FGMRES_SAP implementation: %.4fs.\n", rank, endT - startT);
     fflush(stdout);
@@ -62,6 +65,7 @@ void Tests::SAP(spinor& x,const int iterations, const bool print){
 }
 
 int Tests::fgmresAMG(spinor& x, const bool print){
+    const bool save = true;
     int rank, size; 
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -70,7 +74,7 @@ int Tests::fgmresAMG(spinor& x, const bool print){
     int iter;
     startT = MPI_Wtime();
     FGMRES_AMG f_amg(LV::Ntot, 2,  FGMRESV::fgmres_restart_length, FGMRESV::fgmres_restarts,FGMRESV::fgmres_tolerance,GConf, m0);
-    iter = f_amg.fgmres(rhs,x0,x,print);
+    iter = f_amg.fgmres(rhs,x0,x,print,save);
     endT = MPI_Wtime();
     total_time = endT - startT;
     printf("[MPI process %d] time elapsed during the job: %.4fs.\n", rank, total_time);

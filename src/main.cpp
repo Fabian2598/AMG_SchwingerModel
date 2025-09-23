@@ -126,6 +126,10 @@ int main(int argc, char **argv) {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+    AMGV::Nit = 0;
+    test.fgmresAMG(xFAMG, true);
+
+    /*
     double Iter[3]; double exTime[3];
     double dIter[3]; double dexTime[3];
     const int Meas = 10;
@@ -163,6 +167,7 @@ int main(int argc, char **argv) {
     }
     if (rank == 0)
         saveParameters(Iter, dIter, exTime, dexTime, 3,nconf);
+    */
 
     
     //test.multigrid(xAMG,true); //Multigrid as stand-alone solver

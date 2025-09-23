@@ -90,7 +90,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 	if (l == LevelV::maxLevel){
 		//For the coarsest level we just use GMRES to find a solution
-		levels[l]->gmres_l.fgmres(eta_l, eta_l, psi_l, false); //psi_l = D_l^-1 eta_l 
+		levels[l]->gmres_l.fgmres(eta_l, eta_l, psi_l, false,false); //psi_l = D_l^-1 eta_l 
 	}
 	else{
 		//Buffers
@@ -135,7 +135,7 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 void AlgebraicMG::k_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 	if (l == LevelV::maxLevel){
 		//For the coarsest level we just use GMRES to find a solution
-		levels[l]->gmres_l.fgmres(eta_l, eta_l, psi_l, false); //psi_l = D_l^-1 eta_l 
+		levels[l]->gmres_l.fgmres(eta_l, eta_l, psi_l, false,false); //psi_l = D_l^-1 eta_l 
 	}
 	else{
 		//Buffers might be useful to define them somewhere else and just set them to zero here
@@ -158,7 +158,7 @@ void AlgebraicMG::k_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		}
 		}
 		levels[l]->Pt_v(r_l,eta_l_1); //eta_{l+1} = P^H (eta_l - D_l psi_l)
-		fgmres_k_cycle_l[l+1]->fgmres(eta_l_1,eta_l_1,psi_l_1,false);
+		fgmres_k_cycle_l[l+1]->fgmres(eta_l_1,eta_l_1,psi_l_1,false,false);
 		//psi_{l+1} = fgmres(l+1,eta_{l+1}) with K-cycle(l+1,rhs) as preconditioner
 
 		levels[l]->P_v(psi_l_1,P_psi); //P_psi = P_l psi_{l+1}

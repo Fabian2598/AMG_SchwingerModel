@@ -6,7 +6,7 @@ COMPILE=1
 if [ $COMPILE -eq 1 ]; then
     echo "Compiling"
 # Loop over different NS, NT, and LEVELS vales
-  for NS in 256; do
+  for NS in 64 128 256; do
   for LEVELS in 2 3 4; do
     NT=$NS
     # Update NS and NT (lines 22 and 23)
@@ -29,7 +29,7 @@ fi
 
 #run program 
 
-for NS in 256; do
+for NS in 64 128 256; do
     NT=$NS
     rm parameters.dat
     printf "0 4 4 20 4 4" >> parameters.dat

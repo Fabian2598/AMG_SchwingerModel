@@ -23,6 +23,7 @@
     The convergence criterion is ||r|| < ||phi|| * tol
 */
 spinor bi_cgstab(void (*func)(const c_matrix&, const spinor&, spinor&, const double&), const int& dim1, const int& dim2,
-    const c_matrix& U, const c_matrix& phi, const c_matrix& x0, const double& m0, const int& max_iter, const double& tol, const bool& print_message);
+    const c_matrix& U, const c_matrix& phi, const c_matrix& x0, const double& m0, const int& max_iter, const double& tol, const bool& print_message
+,const bool& save_residuals);
 
 #endif
