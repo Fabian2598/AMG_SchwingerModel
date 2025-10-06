@@ -31,3 +31,30 @@ void GaugeConf::read_conf(const std::string& name){
     
 }
 
+void GaugeConf::readBinary(const std::string& name){
+    using namespace LV;
+    std::ifstream infile(name, std::ios::binary);
+    if (!infile) {
+        std::cerr << "File " << name << " not found " << std::endl;
+        exit(1);
+    }
+    
+    for (int x = 0; x < Nx; x++) {
+    for (int t = 0; t < Nt; t++) {
+        int n = x * Nx + t;
+        for (int mu = 0; mu < 2; mu++) {
+            int x_read, t_read, mu_read;
+            double re, im;
+            infile.read(reinterpret_cast<char*>(&x_read), sizeof(int));
+            infile.read(reinterpret_cast<char*>(&t_read), sizeof(int));
+            infile.read(reinterpret_cast<char*>(&mu_read), sizeof(int));
+            infile.read(reinterpret_cast<char*>(&re), sizeof(double));
+            infile.read(reinterpret_cast<char*>(&im), sizeof(double));
+                Conf[n][mu_read] = c_double(re, im);
+           
+        }
+    }
+    }
+    infile.close();
+      
+}

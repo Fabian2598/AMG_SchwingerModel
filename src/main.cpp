@@ -77,15 +77,20 @@ int main(int argc, char **argv) {
         nconf = 20;
     else if (LV::Nx == 64)
         nconf = 0;
+    
        
     //Reading Conf
     {
+        nconf = 28;
         std::ostringstream NameData;
-        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        NameData << "/wsgjsc/home/nietocastellanos1/Downloads/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" <<
         //NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
-        //std::cout << "Reading conf from file: " << NameData.str() << std::endl;
-        GConf.read_conf(NameData.str());
+        if (rank == 0)
+            std::cout << "Reading conf from file: " << NameData.str() << std::endl;
+        //GConf.read_conf(NameData.str());
+        GConf.readBinary(NameData.str());
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -99,8 +104,8 @@ int main(int argc, char **argv) {
     std::ostringstream FileName;
     FileName << "../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
     //FileName << "../../SchwingerModelFermions/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
-    read_rhs(rhs,FileName.str());
-    //random_rhs(rhs,10);
+    //read_rhs(rhs,FileName.str());
+    random_rhs(rhs,10);
     
     // Save rhs to a .txt file
     if (rank == 0){
@@ -122,7 +127,7 @@ int main(int argc, char **argv) {
     Tests test(GConf, rhs, x0 ,m0);
     if (rank == 0){
         //test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
-        //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
+        test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
