@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
     AMGV::Nit = 1;
     AMGV::SAP_test_vectors_iterations = 4;
-    mass::m0 = -0.18840579710144945;
+    mass::m0 = -0.1023;//-0.0933;//-0.18840579710144945;
     double m0 = mass::m0; 
 
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     GaugeConf GConf = GaugeConf(LV::Nx, LV::Nt);
     GConf.initialize();
 
-    double beta = 2;
+    double beta = 4;
     int nconf;
     if (LV::Nx == 128)
         nconf = 3;
@@ -81,10 +81,13 @@ int main(int argc, char **argv) {
        
     //Reading Conf
     {
-        nconf = 28;
+        nconf = 0;
         std::ostringstream NameData;
-        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
-        NameData << "/wsgjsc/home/nietocastellanos1/Downloads/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" <<
+        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-0093/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+
+        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        
+        //NameData << "/wsgjsc/home/nietocastellanos1/Downloads/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" <<
         //NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
         if (rank == 0)
@@ -126,7 +129,7 @@ int main(int argc, char **argv) {
     
     Tests test(GConf, rhs, x0 ,m0);
     if (rank == 0){
-        //test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
+        test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
         test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
     }
 
