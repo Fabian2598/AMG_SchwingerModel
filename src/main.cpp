@@ -81,11 +81,11 @@ int main(int argc, char **argv) {
        
     //Reading Conf
     {
-        nconf = 0;
+        nconf = 9;
         std::ostringstream NameData;
         //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-0093/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
 
-        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/NewConfs/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         
         //NameData << "/wsgjsc/home/nietocastellanos1/Downloads/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" <<
         //NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     //FileName << "../../SchwingerModelFermions/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
     //read_rhs(rhs,FileName.str());
     random_rhs(rhs,10);
-    
+    //rhs[0][0]=1;
     // Save rhs to a .txt file
     if (rank == 0){
         std::ostringstream FileName;
