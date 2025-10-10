@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
     AMGV::Nit = 1;
     AMGV::SAP_test_vectors_iterations = 4;
-    mass::m0 = -0.1023;//-0.0933;//-0.18840579710144945;
+    mass::m0 = -0.18840579710144945;//-0.1023;//-0.0933;//-0.18840579710144945;
     double m0 = mass::m0; 
 
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     GaugeConf GConf = GaugeConf(LV::Nx, LV::Nt);
     GConf.initialize();
 
-    double beta = 4;
+    double beta = 2;
     int nconf;
     if (LV::Nx == 128)
         nconf = 3;
@@ -81,19 +81,18 @@ int main(int argc, char **argv) {
        
     //Reading Conf
     {
-        nconf = 9;
+        nconf = 29;
         std::ostringstream NameData;
-        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-0093/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
-
-        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/NewConfs/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/NewConfs/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         
         //NameData << "/wsgjsc/home/nietocastellanos1/Downloads/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" <<
         //NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
         if (rank == 0)
             std::cout << "Reading conf from file: " << NameData.str() << std::endl;
-        //GConf.read_conf(NameData.str());
-        GConf.readBinary(NameData.str());
+        GConf.read_conf(NameData.str());
+        //GConf.readBinary(NameData.str());
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -109,7 +108,6 @@ int main(int argc, char **argv) {
     //FileName << "../../SchwingerModelFermions/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
     //read_rhs(rhs,FileName.str());
     random_rhs(rhs,10);
-    //rhs[0][0]=1;
     // Save rhs to a .txt file
     if (rank == 0){
         std::ostringstream FileName;
@@ -129,7 +127,7 @@ int main(int argc, char **argv) {
     
     Tests test(GConf, rhs, x0 ,m0);
     if (rank == 0){
-        test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
+        test.BiCG(x_bi, 100000,true); //BiCGstab for comparison  
         test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
     }
 
