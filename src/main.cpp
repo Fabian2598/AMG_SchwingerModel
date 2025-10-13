@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
     AMGV::Nit = 1;
     AMGV::SAP_test_vectors_iterations = 4;
-    mass::m0 = -0.18840579710144945;//-0.1023;//-0.0933;//-0.18840579710144945;
+    mass::m0 = -0.18840579710144945;//-0.18840579710144945;//-0.1023;//-0.0933;//-0.18840579710144945;
     double m0 = mass::m0; 
 
 
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
        
     //Reading Conf
     {
-        nconf = 29;
+        nconf = 20;
         std::ostringstream NameData;
         NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
         //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/NewConfs/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
@@ -96,6 +96,8 @@ int main(int argc, char **argv) {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+    mass::m0 = -0.25;
+    m0 = mass::m0; 
     //Parameters in variables.cpp
     if (rank == 0)
         printParameters();
@@ -127,7 +129,7 @@ int main(int argc, char **argv) {
     
     Tests test(GConf, rhs, x0 ,m0);
     if (rank == 0){
-        test.BiCG(x_bi, 100000,true); //BiCGstab for comparison  
+        //test.BiCG(x_bi, 100000,true); //BiCGstab for comparison  
         test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
     }
 
