@@ -1,7 +1,6 @@
 #ifndef SAP_H
 #define SAP_H
 #include "fgmres.h"
-#include "mpi.h"
 
 
 /*
@@ -33,7 +32,7 @@ public:
 
         //Set block for GMRES_D_B
         void set_block(const int& block_index) { 
-            parent->blockMPI = block_index;
+            parent->current_block = block_index;
         }
         private:
         SAP_C* parent; //Pointer to the parent SAP_C object
@@ -97,7 +96,7 @@ public:
     int Block_x, Block_t; //Block dimensions for the SAP method
     int x_elements, t_elements; //Number of elements in the x and t direction
     int NBlocks, lattice_sites_per_block, variables_per_block, coloring_blocks; 
-    int blockMPI; //Current block index for the GMRES_D_B operator
+    int current_block; //Current block index for the GMRES_D_B operator
     int colors, spins;
     //Number of blocks, lattice sites per block, variables per block and coloring blocks
 
@@ -158,7 +157,7 @@ private:
     void D_B(const c_matrix& U, const spinor& v, spinor& x, const double& m0,const int& block);
 
     void funcLocal(const spinor& in, spinor& out) override { 
-        D_B(*U, in, out, m0,blockMPI);
+        D_B(*U, in, out, m0,current_block);
     }
 
     /*

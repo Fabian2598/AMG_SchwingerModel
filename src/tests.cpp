@@ -32,69 +32,48 @@ void Tests::CG(spinor& x){
 
 void Tests::FGMRES_sap(spinor& x, const bool print){
     const bool save = false;
-    int rank, size; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (rank == 0)
-        std::cout << "--------------Flexible GMRES with SAP preconditioning version --------------" << std::endl;
-     
-    MPI_Barrier(MPI_COMM_WORLD);
+
+    std::cout << "--------------Flexible GMRES with SAP preconditioning version --------------" << std::endl;
+    start = clock();
     FGMRES_SAP fgmres_sap(LV::Ntot, 2, FGMRESV::fgmres_restart_length, FGMRESV::fgmres_restarts,FGMRESV::fgmres_tolerance,GConf.Conf, m0);
-    startT = MPI_Wtime();
     fgmres_sap.fgmres(rhs,x0,x,print,save);
-    endT = MPI_Wtime();
-    printf("[rank %d] time elapsed during FGMRES_SAP implementation: %.4fs.\n", rank, endT - startT);
+    end = clock();
+    elapsed_time = double(end - start) / CLOCKS_PER_SEC;
+    printf("time elapsed during FGMRES_SAP implementation: %.4fs.\n", elapsed_time);
     fflush(stdout);
 
 }
 
 void Tests::SAP(spinor& x,const int iterations, const bool print){
-    int rank, size; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (rank == 0)
-        std::cout << "--------------SAP as stand-alone solver --------------" << std::endl;
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    startT = MPI_Wtime();
+    std::cout << "--------------SAP as stand-alone solver --------------" << std::endl;
+    start = clock();
     sap.SAP(rhs,x,iterations, SAPV::sap_blocks_per_proc,print);
-    endT = MPI_Wtime();
-    printf("[rank %d] time elapsed during SAP implementation: %.4fs.\n", rank, endT - startT);
+    end = clock();
+    elapsed_time = double(end - start) / CLOCKS_PER_SEC;
+    printf("time elapsed during SAP implementation: %.4fs.\n", elapsed_time);
     fflush(stdout);
 
 }
 
 int Tests::fgmresAMG(spinor& x, const bool print){
     const bool save = false;
-    int rank, size; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (rank == 0)
-        std::cout << "--------------FGMRES with AMG --------------" << std::endl;
+    std::cout << "--------------FGMRES with AMG --------------" << std::endl;
     int iter;
-    startT = MPI_Wtime();
+    start = clock();
     FGMRES_AMG f_amg(LV::Ntot, 2,  FGMRESV::fgmres_restart_length, FGMRESV::fgmres_restarts,FGMRESV::fgmres_tolerance,GConf, m0);
     iter = f_amg.fgmres(rhs,x0,x,print,save);
-    endT = MPI_Wtime();
-    total_time = endT - startT;
-    printf("[MPI process %d] time elapsed during the job: %.4fs.\n", rank, total_time);
+    end = clock();
+    elapsed_time = double(end - start) / CLOCKS_PER_SEC;
+    printf("time elapsed during the job: %.4fs.\n", elapsed_time);
     return iter;
 }
 
 void Tests::multigrid(spinor& x, const bool print){
-    int rank, size; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (rank == 0)
-        std::cout << "--------------Stand-alone AMG --------------" << std::endl;
-    startT = MPI_Wtime();
+    std::cout << "--------------Stand-alone AMG --------------" << std::endl;
     AlgebraicMG AMG(GConf, m0,AMGV::nu1, AMGV::nu2);
     AMG.setUpPhase(AMGV::Nit);
-    MPI_Barrier(MPI_COMM_WORLD);
     //AMG.testSetUp();
     AMG.applyMultilevel(100, rhs,x,1e-10,true);
-    endT = MPI_Wtime();
-    printf("[MPI process %d] time elapsed during the job: %.4fs.\n", rank, endT - startT);
 }
 
 void Tests::check_solution(const spinor& x_sol){

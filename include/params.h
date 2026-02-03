@@ -2,7 +2,6 @@
 #include <fstream>
 #include <sstream>
 #include "variables.h"
-#include "mpi.h"
 
 /*
     Function for reading the AMG blocks and test vectors for each level
@@ -66,9 +65,5 @@ void readParameters(const std::string& inputFile){
     LevelV::GMRES_tol[maxLevel] = 0.1;
 
     infile.close();
-    int rank, size; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (rank == 0)
-        std::cout << "Parameters read from " << NameData.str() << std::endl;
+    std::cout << "Parameters read from " << NameData.str() << std::endl;
 }

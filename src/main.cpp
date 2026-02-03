@@ -9,7 +9,6 @@
 #include "conjugate_gradient.h" //Conjugate gradient for inverting the normal equations
 #include "boundary.h" //Build boundary conditions at every grid level
 #include "amg.h" //Algebraic Multigrid Method
-#include "mpi.h" //MPI
 #include "tests.h" //Class for testing
 
 #include <cstdint>
@@ -47,13 +46,7 @@ static std::string format(const double& number) {
     return str;
 }
 
-int main(int argc, char **argv) {
-    MPI_Init(&argc, &argv);
-    int rank, size; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    
+int main() {
     readParameters("../parameters.dat");
     srand(19);
     //srand(time(0));
@@ -76,92 +69,56 @@ int main(int argc, char **argv) {
     int nconf;
     std::string confFile;
     std::string rhsFile;
-    if (rank == 0){
-         //---Input data---//
-        std::cout << "Nx " << LV::Nx << " Nt " << LV::Nt << std::endl;
-        std::cout << "beta : ";
-        std::cin >> beta;
-        std::cout << "m0: ";
-        std::cin >> m0;
-        std::cout << "Configuration id: ";
-        std::cin >> nconf;
-        std::cout << "Configuration file path: ";
-        std::cin >> confFile;
-        std::cout << "RHS file path: ";
-        std::cin >> rhsFile;
-        std::cout << " " << std::endl;
-    }
+
+    //---Input data---//
+    std::cout << "Nx " << LV::Nx << " Nt " << LV::Nt << std::endl;
+    std::cout << "beta : ";
+    std::cin >> beta;
+    std::cout << "m0: ";
+    std::cin >> m0;
+    std::cout << "Configuration id: ";
+    std::cin >> nconf;
+    std::cout << "Configuration file path: ";
+    std::cin >> confFile;
+    std::cout << "RHS file path: ";
+    std::cin >> rhsFile;
+    std::cout << " " << std::endl;
+    
    
-    MPI_Bcast(&beta, 1, MPI_DOUBLE,  0, MPI_COMM_WORLD);
-    MPI_Bcast(&m0, 1, MPI_DOUBLE,  0, MPI_COMM_WORLD);
-    MPI_Bcast(&nconf, 1, MPI_INT,  0, MPI_COMM_WORLD);
     mass::m0 = m0;
 
-    int filename_len = 0;
-    if (rank == 0) {
-        filename_len = static_cast<int>(confFile.size()) + 1; // include null terminator
-    }
-    MPI_Bcast(&filename_len, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    std::vector<char> filename_buf(filename_len);
-    if (rank == 0) {
-        std::memcpy(filename_buf.data(), confFile.c_str(), filename_len);
-    }
-    MPI_Bcast(filename_buf.data(), filename_len, MPI_CHAR, 0, MPI_COMM_WORLD);
-    if (rank != 0) {
-        confFile.assign(filename_buf.data());
-    }
-
-    filename_len = 0;
-    if (rank == 0) {
-        filename_len = static_cast<int>(rhsFile.size()) + 1; // include null terminator
-    }
-    MPI_Bcast(&filename_len, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    std::vector<char> rhsname_buf(filename_len);
-    if (rank == 0) {
-        std::memcpy(rhsname_buf.data(), rhsFile.c_str(), filename_len);
-    }
-    MPI_Bcast(rhsname_buf.data(), filename_len, MPI_CHAR, 0, MPI_COMM_WORLD);
-    if (rank != 0) {
-        rhsFile.assign(rhsname_buf.data());
-    }
-           
-    
-    MPI_Barrier(MPI_COMM_WORLD);
     //Parameters in variables.cpp
-    if (rank == 0){
-        printParameters();
-        std::cout << "Conf read from " << confFile << std::endl;
-        std::cout << "rhs read from " << rhsFile << std::endl;
-    }
+
+    //printParameters();
+    std::cout << "Conf read from " << confFile << std::endl;
+    std::cout << "rhs read from " << rhsFile << std::endl;
+    
     
     const spinor x0(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0)); //Intial guesss
     spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
     GConf.readBinary(confFile);
     readBinaryRhs(rhs,rhsFile);
-    
 
-
+    sap.set_params(GConf.Conf, m0); //Setting gauge conf and m0 for SAP 
 
     //Solution buffers
-    //spinor x_bi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    //spinor x_cg(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor x_bi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor x_cg(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor xSAP(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor XFGMRES_SAP(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     spinor xFAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     //spinor xAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
+
     
     Tests test(GConf, rhs, x0 ,m0);
-    //if (rank == 0){
-        //test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
-        //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
-    //}
+    test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
+    test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
+    test.SAP(xSAP,400,true);
+    test.FGMRES_sap(XFGMRES_SAP,true);
 
-    MPI_Barrier(MPI_COMM_WORLD);
     test.fgmresAMG(xFAMG, true);
-
-
-
-    MPI_Finalize();
 
     return 0;
 }

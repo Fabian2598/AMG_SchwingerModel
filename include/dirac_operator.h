@@ -2,7 +2,6 @@
 #define DIRAC_OPERATOR_H
 #include "variables.h"
 #include "lin_alg_op.h"
-#include "omp.h"
 
 /*
 	Dirac operator application D phi

@@ -19,8 +19,8 @@ set(SRC_FILES
 )
 
 #--------------------------Lattice dimensions---------------------------#
-set(NS "128") #Space
-set(NT "128") #Time
+set(NS "512") #Space
+set(NT "512") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
@@ -43,16 +43,7 @@ target_compile_options("AMG_${NS}x${NT}_l${LEVELS}" PRIVATE
 			#-fopenmp
 )
 
-find_package(MPI REQUIRED)
-
-target_link_libraries("AMG_${NS}x${NT}_l${LEVELS}" PUBLIC MPI::MPI_CXX)
-
-#find_package(BLAS)
-#include_directories(" /usr/include/cblas/")
-#target_link_libraries("SM_${NS}x${NT}" PUBLIC MPI::MPI_CXX ${BLAS_LIBRARIES})
-
-#find_package(OpenMP REQUIRED)
-#target_link_libraries("SM_${NS}x${NT}" PUBLIC MPI::MPI_CXX OpenMP::OpenMP_CXX)
+#target_link_libraries("AMG_${NS}x${NT}_l${LEVELS}" PUBLIC MPI::MPI_CXX)
 
 #For windows with MinGW, use the following command to generate the makefile:
 #cmake -G "MinGW Makefiles" -DCMAKE_CXX_COMPILER="C:/msys64/ucrt64/bin/g++.exe" -DCMAKE_C_COMPILER="C:/msys64/ucrt64/bin/gcc.exe" ../

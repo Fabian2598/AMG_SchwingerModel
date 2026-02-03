@@ -2,6 +2,8 @@
 #define ALGEBRAICMG_H_INCLUDED
 
 #include "level.h"
+#include <time.h> 
+#include <ctime>
 #include <algorithm>
 #include <random>
 
@@ -103,14 +105,13 @@ class FGMRES_AMG : public FGMRES {
     m0(m0), dim1(dim1), dim2(dim2), amg(GConf, m0, AMGV::nu1, AMGV::nu2) {
 
     //      Set up phase for AMG     //
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     double elapsed_time;
-    double startT, endT;     
-    startT = MPI_Wtime();
+    double start, end;     
+    start = clock();
     amg.setUpPhase(AMGV::Nit); //test vectors intialization
-    endT = MPI_Wtime();
-    elapsed_time = endT - startT;
-    std::cout << "[MPI Process " << rank << "] Elapsed time for Set-up phase = " << elapsed_time << " seconds" << std::endl;   
+    end = clock();
+    elapsed_time = double(end - start) / CLOCKS_PER_SEC;
+    std::cout << "Elapsed time for Set-up phase = " << elapsed_time << " seconds" << std::endl;   
     //---------------------------//
     //Tests
     //amg.testSetUp(); //Checks that test vectors are orthonormal and that P^dagg D P = D_c at every level

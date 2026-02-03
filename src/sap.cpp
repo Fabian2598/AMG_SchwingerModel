@@ -65,100 +65,47 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
     /*
     Solves D x = v using the SAP method
     */
-   int size, rank;
-   MPI_Comm_size(MPI_COMM_WORLD, &size);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
 
     double err;
     double v_norm = sqrt(std::real(dot(v, v))); //norm of the right hand side
 
-    //Divide SAP_RedBlocks among processes
-    int start = rank * blocks_per_proc;
-    int end = std::min(start + blocks_per_proc, coloring_blocks);
-
+   
     spinor temp(lattice_sites_per_block, c_vector(spins*colors, 0)); 
     spinor r(Ntot, c_vector(spins*colors, 0)); //residual
     spinor Dphi(Ntot, c_vector(spins*colors, 0)); //Temporary spinor for D x
     funcGlobal(x,Dphi);
     axpy(v,Dphi,-1.0,r); //r = v - D x
 
-    //Prepare buffers for MPI communication
-    c_vector local_buffer(Ntot * spins * colors, 0);
-    c_vector global_buffer(Ntot * spins * colors, 0);
-    
     for (int i = 0; i< nu; i++){  
-        for(int n = 0; n < Ntot * spins * colors; n++) {
-            local_buffer[n] = 0.0; //Initialize local_buffer to zero
-        }
-        //For the coarser levels, when the number of SAP blocks is smaller than for the finest level, notice that
-        //if we consider all the ranks from the finest level, we will have cases where start>end, i.e. they don't enter
-        //in the for loop. This is convenient, because even though every rank will access this function, only the ranks that
-        //satisfy start < end will play a role here. i.e. we ignore those ranks where rank>NBlocks 
-        for (int b = start; b < end; b++) {
-            int block = RedBlocks[b];
+        for (int block: RedBlocks) {
             I_D_B_1_It(r, temp, block);
-            //local_x = local_x + temp; // Local computation
+            //x = x + + D_B^-1 r
             for(int n = 0; n < lattice_sites_per_block; n++) {
             for(int alf = 0; alf<spins; alf++){
             for(int c = 0; c<colors; c++){
-                local_buffer[colors*spins*Blocks[block][n]+spins*c+alf] = temp[n][spins*c+alf];
+                x[Blocks[block][n]][spins*c+alf] += temp[n][spins*c+alf];
+                
             }
             }
             }
         }
+        funcGlobal(x,Dphi); //Dx
+        axpy(v,Dphi,-1.0,r); //r = v - D x
 
-        //------MPI communication for red blocks------//
-        // Perform single allreduce
-        MPI_Allreduce(local_buffer.data(), global_buffer.data(), Ntot * spins * colors, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
-        
-        //---------------------------------------------//
-        //x = x + global_x;
-        for(int n = 0; n < Ntot; n++) {
-        for(int alf = 0; alf<spins; alf++){
-        for(int c = 0; c<colors; c++){
-             x[n][spins*c+alf] += global_buffer[colors * spins * n + spins * c + alf]; //global_x[n][2c+alf];
-        }
-        }
-        }
-
-        funcGlobal(x,Dphi);
-        //r = v - D x
-        axpy(v,Dphi,-1.0,r);
-        //r = v - D_phi(U, x, m0); //r = v - D x
-
-        for(int n = 0; n < Ntot * spins * colors; n++) {
-            local_buffer[n] = 0.0; //Initialize local_buffer to zero
-        }
-
-        for (int b = start; b < end; b++) {
-            int block = BlackBlocks[b];
+        for (int block: BlackBlocks) {
             I_D_B_1_It(r, temp, block);
-            //local_x = local_x + temp; // Local computation
+            //x = x + + D_B^-1 r
             for(int n = 0; n < lattice_sites_per_block; n++) {
             for(int alf = 0; alf<spins; alf++){
             for(int c = 0; c<colors; c++){
-                local_buffer[colors*spins*Blocks[block][n]+spins*c+alf] = temp[n][spins*c+alf];
+                x[Blocks[block][n]][spins*c+alf] += temp[n][spins*c+alf];   
             }
             }
             }
         }
 
-        //------MPI communication for black blocks------//
-
-        MPI_Allreduce(local_buffer.data(), global_buffer.data(), Ntot * spins * colors, MPI_DOUBLE_COMPLEX, MPI_SUM, MPI_COMM_WORLD);
-
-        for(int n = 0; n < Ntot; n++) {
-        for(int alf = 0; alf<spins; alf++){
-        for(int c = 0; c<colors; c++){
-             x[n][spins*c+alf] += global_buffer[colors * spins * n + spins * c + alf]; //global_x[n][2c+alf];
-        }
-        }
-        }
-
-        funcGlobal(x,Dphi);
-        //r = v - D x
-        axpy(v,Dphi,-1.0,r);
+        funcGlobal(x,Dphi); //Dx
+        axpy(v,Dphi,-1.0,r);      //r = v - D x
 
         err = sqrt(std::real(dot(r, r))); 
         if (err < tol * v_norm) {
@@ -230,32 +177,3 @@ void SAP_fine_level::D_B(const c_matrix& U, const spinor& v, spinor& x, const do
 //One color and two spins per lattice, i.e. two degrees of freedom at level 0 
 SAP_fine_level sap(LV::Ntot,  2, SAPV::sap_tolerance, LV::Nt, LV::Nx,SAPV::sap_block_x,SAPV::sap_block_t,2,1);
 
-/*
-This is the explicit definition of the interpolation and restriction operators for the SAP method.
-I leave it here for reference, but it is not used in the code.
-
-//x = I_B^T v --> Restriction of the vector v to the block B
-//dim(v) = 2 Ntot, dim(x) = 2 * sap_lattice_sites_per_block
-void It_B_v(const spinor& v, spinor& x, const int& block){
-    using namespace SAPV;
-    set_zeros(x,sap_lattice_sites_per_block,2); //Initialize the output vector to zero
-    for (int j = 0; j < sap_lattice_sites_per_block; j++){
-        //Writing result to x 
-        x[j][0] = v[SAP_Blocks[block][j]][0];
-        x[j][1] = v[SAP_Blocks[block][j]][1];
-    }
-}
-
-// x = I_B v --> Interpolation of the vector v to the original lattice
-//dim(v) = 2 * sap_lattice_sites_per_block, dim(x) = 2 Ntot
-void I_B_v(const spinor& v, spinor& x,const int& block){
-    using namespace SAPV;
-    set_zeros(x,Ntot,2); //Initialize x to zero
-    for (int j = 0; j < sap_lattice_sites_per_block; j++){
-        x[SAP_Blocks[block][j]][0] += v[j][0];
-        x[SAP_Blocks[block][j]][1] += v[j][1];
-    }
-
-}
-
-*/

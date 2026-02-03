@@ -6,7 +6,6 @@
 #include "bi_cgstab.h"
 #include "conjugate_gradient.h"
 #include "amg.h"
-#include "mpi.h"
 
 /*
     Class for testing the different methods

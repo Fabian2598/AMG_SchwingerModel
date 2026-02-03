@@ -2,9 +2,6 @@
 
 void AlgebraicMG::setUpPhase(const int& Nit){
     
-	int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
 	static std::mt19937 randomInt(50); //Same seed for all the MPI copies
 	std::uniform_real_distribution<double> distribution(-1.0, 1.0); //mu, standard deviation
 	
@@ -47,10 +44,10 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 
 	//Adaptivity part
 	
-    if (rank == 0)std::cout << "Improving interpolator" << std::endl;
+    std::cout << "Improving interpolator" << std::endl;
     
 	for (int it = 0; it < Nit; it++) {
-		if (rank == 0)std::cout << "****** Bootstrap iteration " << it << " ******" << std::endl;
+		std::cout << "****** Bootstrap iteration " << it << " ******" << std::endl;
 		for (int l = 0; l<AMGV::levels-1; l++){
 			spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
 			spinor Dv(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
@@ -83,7 +80,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 		}
 	}
 	
-    if (rank == 0)std::cout << "Set-up phase finished" << std::endl;
+    std::cout << "Set-up phase finished" << std::endl;
 	
 }
 
@@ -267,18 +264,13 @@ void AlgebraicMG::testSetUp(){
 }
 
 void AlgebraicMG::testSAP(){
-    int rank, size; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     for(int l = 0; l<AMGV::levels-1;l++){
     	spinor rhs(LevelV::Nsites[l],c_vector(LevelV::DOF[l],1)); 
     	spinor x(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0)); 
 		spinor xgmres(LevelV::Nsites[l],c_vector(LevelV::DOF[l],0)); 
     	int iter = 100; //SAP iterations
-    	MPI_Barrier(MPI_COMM_WORLD);
 		levels[l]->sap_l.SAP(rhs,x,iter,SAPV::sap_blocks_per_proc,true); 
-    	MPI_Barrier(MPI_COMM_WORLD);
     	levels[l]->gmres_l.fgmres(rhs,xgmres,xgmres,true);
 
         for(int n=0; n<LevelV::Nsites[l]; n++){

@@ -38,7 +38,7 @@ public:
         void D_local(const spinor& in, spinor& out, const int& block);
 
         void funcLocal(const spinor& in, spinor& out) override { 
-            D_local( in, out,blockMPI);
+            D_local( in, out,current_block);
         }
 
         /*
