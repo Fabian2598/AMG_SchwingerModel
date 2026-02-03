@@ -12,6 +12,9 @@
 #include "mpi.h" //MPI
 #include "tests.h" //Class for testing
 
+#include <cstdint>
+#include <cstring>
+
 //mean of a vector
 template <typename T>
 double mean(std::vector<T> x){ 
@@ -59,9 +62,9 @@ int main(int argc, char **argv) {
     boundary(); //Boundaries for every level
 
     AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
-    AMGV::Nit = 1;
+    AMGV::Nit = 0;
     AMGV::SAP_test_vectors_iterations = 4;
-    mass::m0 = -0.18840579710144945;//-0.18840579710144945;//-0.1023;//-0.0933;//-0.18840579710144945;
+    //-0.1023;//-0.0933;//-0.18840579710144945; //0.0709
     double m0 = mass::m0; 
 
 
@@ -69,75 +72,132 @@ int main(int argc, char **argv) {
     GaugeConf GConf = GaugeConf(LV::Nx, LV::Nt);
     GConf.initialize();
 
-    double beta = 2;
+    double beta;
     int nconf;
-    if (LV::Nx == 128)
-        nconf = 3;
-    else if (LV::Nx == 256)
-        nconf = 20;
-    else if (LV::Nx == 64)
-        nconf = 0;
-    
-       
-    //Reading Conf
-    {
-        nconf = 20;
-        std::ostringstream NameData;
-        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
-        //NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/NewConfs/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
-        
-        //NameData << "/wsgjsc/home/nietocastellanos1/Downloads/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" <<
-        //NameData << "../../SchwingerModelFermions/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-018/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
-        format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
-        if (rank == 0)
-            std::cout << "Reading conf from file: " << NameData.str() << std::endl;
-        GConf.read_conf(NameData.str());
-        //GConf.readBinary(NameData.str());
+    std::string confFile;
+    std::string rhsFile;
+    if (rank == 0){
+         //---Input data---//
+        std::cout << "Nx " << LV::Nx << " Nt " << LV::Nt << std::endl;
+        std::cout << "beta : ";
+        std::cin >> beta;
+        std::cout << "m0: ";
+        std::cin >> m0;
+        std::cout << "Configuration id: ";
+        std::cin >> nconf;
+        std::cout << "Configuration file path: ";
+        std::cin >> confFile;
+        std::cout << "RHS file path: ";
+        std::cin >> rhsFile;
+        std::cout << " " << std::endl;
+    }
+   
+    MPI_Bcast(&beta, 1, MPI_DOUBLE,  0, MPI_COMM_WORLD);
+    MPI_Bcast(&m0, 1, MPI_DOUBLE,  0, MPI_COMM_WORLD);
+    MPI_Bcast(&nconf, 1, MPI_INT,  0, MPI_COMM_WORLD);
+    mass::m0 = m0;
+
+    int filename_len = 0;
+    if (rank == 0) {
+        filename_len = static_cast<int>(confFile.size()) + 1; // include null terminator
+    }
+    MPI_Bcast(&filename_len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    std::vector<char> filename_buf(filename_len);
+    if (rank == 0) {
+        std::memcpy(filename_buf.data(), confFile.c_str(), filename_len);
+    }
+    MPI_Bcast(filename_buf.data(), filename_len, MPI_CHAR, 0, MPI_COMM_WORLD);
+    if (rank != 0) {
+        confFile.assign(filename_buf.data());
     }
 
+    filename_len = 0;
+    if (rank == 0) {
+        filename_len = static_cast<int>(rhsFile.size()) + 1; // include null terminator
+    }
+    MPI_Bcast(&filename_len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    std::vector<char> rhsname_buf(filename_len);
+    if (rank == 0) {
+        std::memcpy(rhsname_buf.data(), rhsFile.c_str(), filename_len);
+    }
+    MPI_Bcast(rhsname_buf.data(), filename_len, MPI_CHAR, 0, MPI_COMM_WORLD);
+    if (rank != 0) {
+        rhsFile.assign(rhsname_buf.data());
+    }
+           
+    
     MPI_Barrier(MPI_COMM_WORLD);
-    mass::m0 = -0.25;
-    m0 = mass::m0; 
     //Parameters in variables.cpp
-    if (rank == 0)
+    if (rank == 0){
         printParameters();
-     
+        std::cout << "Conf read from " << confFile << std::endl;
+        std::cout << "rhs read from " << rhsFile << std::endl;
+    }
+    
     const spinor x0(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0)); //Intial guesss
     spinor rhs(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
-    std::ostringstream FileName;
-    FileName << "../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
-    //FileName << "../../SchwingerModelFermions/confs/rhs/rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt << ".rhs";
-    //read_rhs(rhs,FileName.str());
-    random_rhs(rhs,10);
-    // Save rhs to a .txt file
-    if (rank == 0){
-        std::ostringstream FileName;
-        FileName << "rhs_conf" << nconf << "_" << LV::Nx << "_Nt" << LV::Nt
-                 << ".rhs";
-        //save_rhs(rhs,FileName.str());
-    }
+    GConf.readBinary(confFile);
+    readBinaryRhs(rhs,rhsFile);
+    
 
 
 
     //Solution buffers
-    spinor x_bi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    spinor x_cg(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    //spinor x_bi(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    //spinor x_cg(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     spinor xFAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
-    spinor xAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    //spinor xAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
     
     Tests test(GConf, rhs, x0 ,m0);
-    if (rank == 0){
-        //test.BiCG(x_bi, 100000,true); //BiCGstab for comparison  
-        test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
-    }
+    //if (rank == 0){
+        //test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
+        //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
+    //}
 
     MPI_Barrier(MPI_COMM_WORLD);
-    AMGV::Nit = 0;
     test.fgmresAMG(xFAMG, true);
 
-    /*
+
+
+    MPI_Finalize();
+
+    return 0;
+}
+
+//Four levels multigrid
+//0 8 8 10 4 4
+//1 4 4 10 4 4
+//2 2 2 10 2 2
+
+//Three levels multigrid
+//0 8 8 10 4 4
+//1 4 4 10 4 4
+
+//or
+
+//0 4 4 10 4 4
+//1 2 2 10 2 2
+
+
+
+/*
+ //Reading Conf
+    
+    {
+        std::ostringstream NameData;
+        NameData << "../../SchwingerModel/fermions/SchwingerModel/confs/b" << beta << "_" << LV::Nx << "x" << LV::Nt << "/m-01023/2D_U1_Ns" << LV::Nx << "_Nt" << LV::Nt << "_b" << 
+        format(beta).c_str() << "_m" << format(m0).c_str() << "_" << nconf << ".ctxt";
+               
+        if (rank == 0)
+            std::cout << "Reading conf from file: " << NameData.str() << std::endl;
+        //GConf.read_conf(NameData.str());
+        GConf.readBinary(NameData.str());
+    }
+*/
+
+/*
     double Iter[3]; double exTime[3];
     double dIter[3]; double dexTime[3];
     const int Meas = 10;
@@ -175,27 +235,28 @@ int main(int argc, char **argv) {
     }
     if (rank == 0)
         saveParameters(Iter, dIter, exTime, dexTime, 3,nconf);
-    */
+*/
 
     
     //test.multigrid(xAMG,true); //Multigrid as stand-alone solver
     //test.check_solution(xFAMG); //Check that the solution is correct
 
-    MPI_Finalize();
 
-    return 0;
-}
+    /*
+        std::ostringstream FileName;
+    FileName << "../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf" << 
+    nconf << "_" << LV::Nx << "x" << LV::Nt << "_b" << format(beta) << "_m" << format(m0) << ".rhs";
+    
+    //read_rhs(rhs,FileName.str());
+    readBinaryRhs(rhs,FileName.str());
+    //random_rhs(rhs,10);
 
-//Four levels multigrid
-//0 8 8 10 4 4
-//1 4 4 10 4 4
-//2 2 2 10 2 2
-
-//Three levels multigrid
-//0 8 8 10 4 4
-//1 4 4 10 4 4
-
-//or
-
-//0 4 4 10 4 4
-//1 2 2 10 2 2
+    // Save rhs to a .txt file
+    if (rank == 0){
+        std::ostringstream FileName;
+        FileName << "rhs_conf" << nconf << "_" << LV::Nx << "x" << LV::Nt
+                 << "_b" << format(beta) << "_m" << format(m0)
+                 << ".rhs";
+      //  save_rhs(rhs,FileName.str());
+    }
+    */

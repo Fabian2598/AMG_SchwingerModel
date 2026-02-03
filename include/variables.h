@@ -118,6 +118,7 @@ extern std::vector<std::vector<std::vector<c_double>>>SignL_l; //Left fermionic 
 
 void save_vec(const std::vector<double>& vec,const std::string& name); //save vector to .txt file 
 void read_rhs(std::vector<std::vector<c_double>>& vec,const std::string& name);
+void readBinaryRhs(std::vector<std::vector<c_double>>& vec, const std::string& name);
 void save_rhs(std::vector<std::vector<c_double>>& vec,const std::string& name);
 void random_rhs(std::vector<std::vector<c_double>>& vec,const int seed);
 
