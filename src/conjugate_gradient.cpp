@@ -19,36 +19,43 @@ int conjugate_gradient(const c_matrix& U, const spinor& phi, spinor& x,const dou
     for(int n = 0; n<LV::Ntot; n++){
         r[n][0] = phi[n][0] - Ad[n][0];
         r[n][1] = phi[n][1] - Ad[n][1];
+        FLOPS += 2*2;
     }
 
     d = r; //initial search direction
     c_double r_norm2 = dot(r, r);
     double phi_norm2 = sqrt(std::real(dot(phi, phi)));
+    FLOPS += 1;
 
     while (k<CG::max_iter) {
         D_D_dagger_phi(U, d,Ad, m0); //DD^dagger*d 
         alpha = r_norm2 / dot(d, Ad); //alpha = (r_i,r_i)/(d_i,Ad_i)
+        FLOPS += 13;
 
         //x = x + alpha * d; //x_{i+1} = x_i + alpha*d_i
         for(int n = 0; n<LV::Ntot; n++){ 
             x[n][0] += alpha*d[n][0];
             x[n][1] += alpha*d[n][1];
+            FLOPS += (2+6)*2;
         }
         
         //r = r - alpha * Ad; //r_{i+1} = r_i - alpha*Ad_i
         for(int n = 0; n<LV::Ntot; n++){
             r[n][0] -= alpha*Ad[n][0];
             r[n][1] -= alpha*Ad[n][1];
+            FLOPS += (2+6)*2;
         }
         
         err_sqr = std::real(dot(r, r)); //err_sqr = (r_{i+1},r_{i+1})
 		err = sqrt(err_sqr); // err = sqrt(err_sqr)
+        FLOPS += 1;
         if (err < CG::tol*phi_norm2) {
             std::cout << "Converged in " << k << " iterations" << " Error " << err << std::endl;
             return 1;
         }
 
         beta = err_sqr / r_norm2; //beta = (r_{i+1},r_{i+1})/(r_i,r_i)
+        FLOPS += 13;
 
         //d = r + beta * d; //d_{i+1} = r_{i+1} + beta*d_i 
         for(int n = 0; n<LV::Ntot; n++){
@@ -56,6 +63,7 @@ int conjugate_gradient(const c_matrix& U, const spinor& phi, spinor& x,const dou
             d[n][1] *= beta;
             d[n][0] += r[n][0];
             d[n][1] += r[n][1];
+            FLOPS += 6*2 + 2*2;
         }
                
         r_norm2 = err_sqr;

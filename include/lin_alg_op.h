@@ -3,8 +3,7 @@
 #include <vector>
 #include <complex>
 #include <iostream>
-//#include <cblas.h>
-//#include <omp.h>
+#include "variables.h"
 
 //Linear algebra operations
 
@@ -21,6 +20,7 @@ inline c_double dot(const c_vector& x, const c_vector& y) {
     c_double z = 0;
     for (int i = 0; i < x.size(); i++) {
         z += x[i] * std::conj(y[i]);
+        FLOPS += 2+6;
     }
     return z;
 }
@@ -34,6 +34,7 @@ inline c_double dot(const spinor& x, const spinor& y) {
     for (int i = 0; i < x.size(); i++) {
         for (int j = 0; j < x[i].size(); j++) {
             z += x[i][j] * std::conj(y[i][j]);
+            FLOPS += 2+6;
         }
     }
     return z;
@@ -48,6 +49,7 @@ inline void scal(const T& lambda, const c_vector& X, c_vector& Y) {
     int size = X.size();
     for (int i = 0; i < size; i++) {
         Y[i] = lambda * X[i];
+        FLOPS += 2;
     }
 }
 
@@ -59,6 +61,7 @@ inline void axpy(const c_vector& X, const c_vector& Y, const T&lambda,  c_vector
     int size = X.size();
     for (int i = 0; i < size; i++) {
         out[i] = X[i] + lambda * Y[i];
+        FLOPS += 2+6;
     }
 }
 
@@ -73,6 +76,7 @@ inline void AtimesV(const c_matrix& A, const c_vector& v, c_vector& w) {
     for (int i = 0; i < size1; i++) {
         for (int j = 0; j < size2; j++) {
             w[i] += A[i][j] * v[j];
+            FLOPS += 2+6;
         }
     }
 }
@@ -90,6 +94,7 @@ inline void scal(const T& lambda, const c_matrix& X, c_matrix& Y) {
     for (int i = 0; i < size1; i++) {
         for (int j = 0; j < size2; j++) {
             Y[i][j] = lambda * X[i][j];
+            FLOPS += 6;
         }
     }
 }
@@ -106,6 +111,7 @@ inline void axpy(const c_matrix& X, const c_matrix& Y, const T& lambda, c_matrix
     for (int i = 0; i < size1; i++) {
         for (int j = 0; j < size2; j++) {
             out[i][j] = X[i][j] + lambda * Y[i][j];
+            FLOPS += 2+6;
         }
     }
 }
@@ -141,6 +147,8 @@ inline void PrintComplexVector(const c_vector& v ){
 */
 inline void normalize(spinor& v){
 	c_double norm = sqrt(std::real(dot(v,v))) + 0.0*c_double(0,1); 
+    FLOPS += 1+2+2;
+    FLOPS += 1; //1/norm
 	scal(1.0/norm, v, v); //v = v / norm
 }
 

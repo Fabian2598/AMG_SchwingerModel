@@ -113,10 +113,10 @@ int main() {
 
     
     Tests test(GConf, rhs, x0 ,m0);
-    //test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
-    //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
-    //test.SAP(xSAP,400,true);
-    //test.FGMRES_sap(XFGMRES_SAP,true);
+    test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
+    test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
+    test.SAP(xSAP,400,true);
+    test.FGMRES_sap(XFGMRES_SAP,true);
 
     test.fgmresAMG(xFAMG, true);
 

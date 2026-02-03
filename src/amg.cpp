@@ -215,6 +215,7 @@ void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,c
 			for(int n = 0;n < LevelV::Nsites[0]; n++){
 			for(int dof = 0; dof < LevelV::DOF[0]; dof++){
 				r[n][dof] = rhs[n][dof] - Dx[n][dof];
+				FLOPS += 2;
 			}
 			}
 		

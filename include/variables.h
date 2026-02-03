@@ -131,5 +131,7 @@ void printParameters();
 
 void saveParameters(double *Iter, double *dIter, double *exTime, double *dexTime, const int nMeas,const int nconf);
 
+void printFLOPS(const long long int& x);
+
 
 #endif 

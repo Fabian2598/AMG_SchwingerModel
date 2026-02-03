@@ -10,6 +10,7 @@ void Tests::BiCG(spinor& x,const int max_it, const bool print){
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     std::cout << "Elapsed time for Bi-CGstab = " << elapsed_time << " seconds" << std::endl;
     std::cout << "FLOPS = " << FLOPS << std::endl;
+    printFLOPS(FLOPS);
     std::cout << "-----------------------------------------------------------\n" << std::endl;
 }
 
@@ -24,6 +25,7 @@ void Tests::GMRES(spinor& x, const int len, const int restarts,const bool print)
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     std::cout << "Elapsed time for GMRES = " << elapsed_time << " seconds" << std::endl; 
     std::cout << "FLOPS = " << FLOPS << std::endl;
+    printFLOPS(FLOPS);
     std::cout << "-----------------------------------------------------------\n" << std::endl;
 }
 
@@ -36,6 +38,7 @@ void Tests::CG(spinor& x){
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     std::cout << "Elapsed time for CG = " << elapsed_time << " seconds" << std::endl;  
     std::cout << "FLOPS = " << FLOPS << std::endl;
+    printFLOPS(FLOPS);
     std::cout << "-----------------------------------------------------------\n" << std::endl;
 }
 
@@ -51,6 +54,7 @@ void Tests::FGMRES_sap(spinor& x, const bool print){
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     printf("time elapsed during FGMRES_SAP implementation: %.4fs.\n", elapsed_time);
     std::cout << "FLOPS = " << FLOPS << std::endl;
+    printFLOPS(FLOPS);
     std::cout << "-----------------------------------------------------------\n" << std::endl;
     fflush(stdout);
 
@@ -65,6 +69,7 @@ void Tests::SAP(spinor& x,const int iterations, const bool print){
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     printf("time elapsed during SAP implementation: %.4fs.\n", elapsed_time);
     std::cout << "FLOPS = " << FLOPS << std::endl;
+    printFLOPS(FLOPS);
     std::cout << "-----------------------------------------------------------\n" << std::endl;
     fflush(stdout);
 
@@ -82,6 +87,7 @@ int Tests::fgmresAMG(spinor& x, const bool print){
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     printf("Time elapsed during the job: %.4fs.\n", elapsed_time);
     std::cout << "FLOPS = " << FLOPS << std::endl;
+    printFLOPS(FLOPS);
     std::cout << "-----------------------------------------------------------\n" << std::endl;
     return iter;
 }

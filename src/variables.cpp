@@ -317,3 +317,9 @@ void saveParameters(double *Iter, double *dIter, double *exTime, double *dexTime
     results.close();
 
 }
+
+
+void printFLOPS(const long long int& x){
+    long double y = x*1.0;
+    std::cout << "GFLOPS = " << y/1e9 << std::endl;
+}
