@@ -68,7 +68,7 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
 
     double err;
     double v_norm = sqrt(std::real(dot(v, v))); //norm of the right hand side
-    FLOPS += 1;
+    FLOPS += dsq;
 
    
     spinor temp(lattice_sites_per_block, c_vector(spins*colors, 0)); 
@@ -85,7 +85,7 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
             for(int alf = 0; alf<spins; alf++){
             for(int c = 0; c<colors; c++){
                 x[Blocks[block][n]][spins*c+alf] += temp[n][spins*c+alf];
-                FLOPS += 2;
+                FLOPS += ca;
                 
             }
             }
@@ -101,7 +101,7 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
             for(int alf = 0; alf<spins; alf++){
             for(int c = 0; c<colors; c++){
                 x[Blocks[block][n]][spins*c+alf] += temp[n][spins*c+alf];   
-                FLOPS += 2;
+                FLOPS += ca;
             }
             }
             }
@@ -111,7 +111,7 @@ int SAP_C::SAP(const spinor& v,spinor &x, const int& nu, const int& blocks_per_p
         axpy(v,Dphi,-1.0,r);      //r = v - D x
 
         err = sqrt(std::real(dot(r, r))); 
-        FLOPS += 1;
+        FLOPS += dsq;
         if (err < tol * v_norm) {
             if (print == true)
                 std::cout << "SAP converged in " << i << " iterations, error: " << err << std::endl;

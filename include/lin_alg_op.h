@@ -20,7 +20,7 @@ inline c_double dot(const c_vector& x, const c_vector& y) {
     c_double z = 0;
     for (int i = 0; i < x.size(); i++) {
         z += x[i] * std::conj(y[i]);
-        FLOPS += 2+6;
+        FLOPS += ca+cm;
     }
     return z;
 }
@@ -34,7 +34,7 @@ inline c_double dot(const spinor& x, const spinor& y) {
     for (int i = 0; i < x.size(); i++) {
         for (int j = 0; j < x[i].size(); j++) {
             z += x[i][j] * std::conj(y[i][j]);
-            FLOPS += 2+6;
+            FLOPS += ca+cm;
         }
     }
     return z;
@@ -43,25 +43,46 @@ inline c_double dot(const spinor& x, const spinor& y) {
 /*
     Scalar times a complex vector
 */
-template <typename T>
-inline void scal(const T& lambda, const c_vector& X, c_vector& Y) {
+inline void scal(const c_double& lambda, const c_vector& X, c_vector& Y) {
     // Y = lambda X
     int size = X.size();
     for (int i = 0; i < size; i++) {
         Y[i] = lambda * X[i];
-        FLOPS += 2;
+        FLOPS += cm;
+    }
+}
+
+/*
+    Scalar times a complex vector
+*/
+inline void scal(const double& lambda, const c_vector& X, c_vector& Y) {
+    // Y = lambda X
+    int size = X.size();
+    for (int i = 0; i < size; i++) {
+        Y[i] = lambda * X[i];
+        FLOPS += dcm;
     }
 }
 
 /*
     Complex vector addition
 */
-template <typename T>
-inline void axpy(const c_vector& X, const c_vector& Y, const T&lambda,  c_vector& out) {
+inline void axpy(const c_vector& X, const c_vector& Y, const c_double&lambda,  c_vector& out) {
     int size = X.size();
     for (int i = 0; i < size; i++) {
         out[i] = X[i] + lambda * Y[i];
-        FLOPS += 2+6;
+        FLOPS += ca+cm;
+    }
+}
+
+/*
+    Complex vector addition
+*/
+inline void axpy(const c_vector& X, const c_vector& Y, const double&lambda,  c_vector& out) {
+    int size = X.size();
+    for (int i = 0; i < size; i++) {
+        out[i] = X[i] + lambda * Y[i];
+        FLOPS += ca+dcm;
     }
 }
 
@@ -76,7 +97,7 @@ inline void AtimesV(const c_matrix& A, const c_vector& v, c_vector& w) {
     for (int i = 0; i < size1; i++) {
         for (int j = 0; j < size2; j++) {
             w[i] += A[i][j] * v[j];
-            FLOPS += 2+6;
+            FLOPS += ca+cm;
         }
     }
 }
@@ -85,16 +106,26 @@ inline void AtimesV(const c_matrix& A, const c_vector& v, c_vector& w) {
     Scalar times a complex matrix.
     Also works for spinors, since they are just matrices with 2 columns.
 */
-
-template <typename T>
-inline void scal(const T& lambda, const c_matrix& X, c_matrix& Y) {
+inline void scal(const c_double& lambda, const c_matrix& X, c_matrix& Y) {
     // alpha times a complex matrix
     int size1 = X.size();
     int size2 = X[0].size();
     for (int i = 0; i < size1; i++) {
         for (int j = 0; j < size2; j++) {
             Y[i][j] = lambda * X[i][j];
-            FLOPS += 6;
+            FLOPS += cm;
+        }
+    }
+}
+
+inline void scal(const double& lambda, const c_matrix& X, c_matrix& Y) {
+    // alpha times a complex matrix
+    int size1 = X.size();
+    int size2 = X[0].size();
+    for (int i = 0; i < size1; i++) {
+        for (int j = 0; j < size2; j++) {
+            Y[i][j] = lambda * X[i][j];
+            FLOPS += dcm;
         }
     }
 }
@@ -103,15 +134,25 @@ inline void scal(const T& lambda, const c_matrix& X, c_matrix& Y) {
     Complex matrix addition
     Also works for spinors, since they are just matrices with 2 columns.
 */
-template <typename T>
-inline void axpy(const c_matrix& X, const c_matrix& Y, const T& lambda, c_matrix& out) {
+inline void axpy(const c_matrix& X, const c_matrix& Y, const c_double& lambda, c_matrix& out) {
     // A + B = C
     int size1 = X.size();
     int size2 = X[0].size();
     for (int i = 0; i < size1; i++) {
         for (int j = 0; j < size2; j++) {
             out[i][j] = X[i][j] + lambda * Y[i][j];
-            FLOPS += 2+6;
+            FLOPS += ca+cm;
+        }
+    }
+}
+inline void axpy(const c_matrix& X, const c_matrix& Y, const double& lambda, c_matrix& out) {
+    // A + B = C
+    int size1 = X.size();
+    int size2 = X[0].size();
+    for (int i = 0; i < size1; i++) {
+        for (int j = 0; j < size2; j++) {
+            out[i][j] = X[i][j] + lambda * Y[i][j];
+            FLOPS += ca+dcm;
         }
     }
 }
@@ -147,8 +188,8 @@ inline void PrintComplexVector(const c_vector& v ){
 */
 inline void normalize(spinor& v){
 	c_double norm = sqrt(std::real(dot(v,v))) + 0.0*c_double(0,1); 
-    FLOPS += 1+2+2;
-    FLOPS += 1; //1/norm
+    FLOPS += dsq+dcm+da;
+    FLOPS += dcd; //1/norm
 	scal(1.0/norm, v, v); //v = v / norm
 }
 

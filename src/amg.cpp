@@ -11,7 +11,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 		for (int n = 0; n < LevelV::Nsites[0]; n++) {
 		for (int dof = 0; dof < LevelV::DOF[0]; dof++) {
 			levels[0]->interpolator_columns[i][n][dof] = distribution(randomInt) + I_number * distribution(randomInt);
-			FLOPS += 3;
+			FLOPS += da+dcm;
 		}
 		}
 	}
@@ -26,7 +26,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 				for (int n = 0; n < LevelV::Nsites[l]; n++) {
 				for (int dof = 0; dof < LevelV::DOF[l]; dof++) {
 					levels[l]->interpolator_columns[i][n][dof] =  distribution(randomInt) + I_number * distribution(randomInt);
-					FLOPS += 3;
+					FLOPS += da+dcm;
 				}	
 				}
 			}
@@ -61,6 +61,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 				for(int n = 0; n < LevelV::Nsites[l]; n++) {
 				for(int dof = 0; dof < LevelV::DOF[l]; dof++) {
 					rhs[n][dof] = levels[l]->interpolator_columns[i][n][dof] - Dv[n][dof]; //rhs = v - D v
+					FLOPS += ca;
 				}
 				}
 
@@ -72,6 +73,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 				for(int n = 0; n < LevelV::Nsites[l]; n++) {
 				for(int dof = 0; dof < LevelV::DOF[l]; dof++) {
 					levels[l]->test_vectors[i][n][dof] += levels[l]->interpolator_columns[i][n][dof]; //v = v + Cycle(v-Dv)
+					FLOPS += ca;
 				}
 				}
 			}
@@ -83,7 +85,7 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 	}
 	
     std::cout << "Set-up phase finished" << std::endl;
-	
+	printFLOPS(FLOPS);
 }
 
 void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
@@ -108,6 +110,7 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		for(int n = 0; n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
 			r_l[n][dof] = eta_l[n][dof] - Dpsi[n][dof]; //r_l = eta_l - D_l psi_l
+			FLOPS += ca;
 		}
 		}
 		levels[l]->Pt_v(r_l,eta_l_1); //eta_{l+1} = P^H (eta_l - D_l psi_l)
@@ -118,6 +121,7 @@ void AlgebraicMG::v_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		for(int n = 0;n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
 			psi_l[n][dof] += P_psi[n][dof]; //psi_l = psi_l + P_l psi_{l+1}
+			FLOPS += ca;
 		}
 		}
 
@@ -154,7 +158,7 @@ void AlgebraicMG::k_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		for(int n = 0;n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
 			r_l[n][dof] = eta_l[n][dof] - Dpsi[n][dof]; //r_l = eta_l - D_l psi_l
-			FLOPS += 2;
+			FLOPS += ca;
 		}
 		}
 		levels[l]->Pt_v(r_l,eta_l_1); //eta_{l+1} = P^H (eta_l - D_l psi_l)
@@ -165,7 +169,7 @@ void AlgebraicMG::k_cycle(const int& l, const spinor& eta_l, spinor& psi_l){
 		for(int n = 0;n < LevelV::Nsites[l]; n++){
 		for(int dof = 0; dof < LevelV::DOF[l]; dof++){
 			psi_l[n][dof] += P_psi[n][dof]; //psi_l = psi_l + P_l psi_{l+1}
-			FLOPS += 2;
+			FLOPS += ca;
 		}
 		}
 
@@ -184,6 +188,7 @@ void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,c
 	spinor Dx(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 	double err;
 	double norm = sqrt(std::real(dot(rhs, rhs)));
+	FLOPS += dsq;
 
 	//If cycle = 0 --> V-cycle
 	if (AMGV::cycle == 0){
@@ -193,10 +198,12 @@ void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,c
 			for(int n = 0;n < LevelV::Nsites[0]; n++){
 			for(int dof = 0; dof < LevelV::DOF[0]; dof++){
 				r[n][dof] = rhs[n][dof] - Dx[n][dof];
+				FLOPS += ca;
 			}
 			}
 		
 			err = sqrt(std::real(dot(r, r)));
+			FLOPS += dsq;
         	if (err < tol* norm) {
             	if (print_message == true) {
             		std::cout << "V-cycle converged in " << i+1 << " cycles" << " Error " << err << std::endl;
@@ -220,6 +227,7 @@ void AlgebraicMG::applyMultilevel(const int& it, const spinor&rhs, spinor& out,c
 			}
 		
 			err = sqrt(std::real(dot(r, r)));
+			FLOPS += dsq;
         	if (err < tol* norm) {
             	if (print_message == true) {
             		std::cout << "K-cycle converged in " << i+1 << " cycles" << " Error " << err << std::endl;
