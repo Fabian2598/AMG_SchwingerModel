@@ -4,6 +4,7 @@ typedef std::complex<double> c_double;
 double coarse_time = 0.0; //Time spent in the coarse grid solver
 double smooth_time = 0.0; //Time spent in the smoother
 double total_time = 0.0;
+long long int FLOPS = 0;
 
 
 std::vector<std::vector<int>>Coords = std::vector<std::vector<int>>(LV::Nx, std::vector<int>(LV::Nt, 0));

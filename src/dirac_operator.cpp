@@ -23,7 +23,7 @@ void D_phi(const c_matrix& U, const spinor& phi, spinor &out,const double& m0) {
 		);
 			
 	}
-	
+	FLOPS += 81*2*Ntot;
 }
 
 
@@ -47,10 +47,9 @@ void D_dagger_phi(const c_matrix& U, const spinor& phi, spinor &Dphi,const doubl
 		+   std::conj(U[LeftPB[n][1]][1]) * SignL[n][1] * (-I_number*phi[LeftPB[n][1]][0] + phi[LeftPB[n][1]][1])
 		+   U[n][0] * SignR[n][0] * (phi[RightPB[n][0]][0] + phi[RightPB[n][0]][1])
 		+   U[n][1] * SignR[n][1] * (I_number*phi[RightPB[n][1]][0] + phi[RightPB[n][1]][1])
-		);
-			
+		);	
 	}
-
+	FLOPS += 81*2*Ntot;
 }
 
 

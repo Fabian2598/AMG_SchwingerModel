@@ -16,6 +16,7 @@ constexpr double pi=3.14159265359;
 extern double coarse_time; //Time spent in the coarse grid solver
 extern double smooth_time; //Time spent in the smoother
 extern double total_time; //Total time spent in the multigrid solver
+extern long long int FLOPS;
 
 namespace mass{
     extern double m0;
