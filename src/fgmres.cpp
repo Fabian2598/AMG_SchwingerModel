@@ -93,7 +93,7 @@ int FGMRES::fgmres(const spinor& phi, const spinor& x0, spinor& x,const bool& pr
         k++;
     }
     if (print_message == true) {
-        std::cout << "FGMRES did not converge in " << restarts << " cycles" << " Error " << err << std::endl;
+        std::cout << "FGMRES did not converge in " << restarts << " cycles of length " << m << " Error " << err << std::endl;
     }
     return restarts*m;
 }

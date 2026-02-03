@@ -33,15 +33,26 @@ void AlgebraicMG::setUpPhase(const int& Nit){
 		}
 	}
 
+	
+
 	//Smoothing the test vectors
     for(int l=0; l<AMGV::levels-1; l++){
         spinor rhs(LevelV::Nsites[l], c_vector(LevelV::DOF[l],0));
 		for (int i = 0; i < LevelV::Ntest[l]; i++) {
 			//Approximately solving D x = 0
+			std::cout << "SAP at level " << l << std::endl;
+			printFLOPS(FLOPS);
+			std::cout << " -- --- -- -- -- - - --\n";
             levels[l]->sap_l.SAP(rhs,levels[l]->interpolator_columns[i],AMGV::SAP_test_vectors_iterations,SAPV::sap_blocks_per_proc,false);
 		}
 		levels[l]->orthonormalize(); 
+			std::cout << "Orthonormalization " << l << std::endl;
+			printFLOPS(FLOPS);
+			std::cout << " -- --- -- -- -- - - --\n";
 		levels[l]->makeCoarseLinks(*levels[l+1]); 
+			std::cout << "Make coarse links " << l << std::endl;
+			printFLOPS(FLOPS);
+			std::cout << " -- --- -- -- -- - - --\n";
 	}
 
 	//Adaptivity part

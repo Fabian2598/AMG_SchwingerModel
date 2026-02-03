@@ -108,6 +108,7 @@ int main() {
     spinor xSAP(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     spinor XFGMRES_SAP(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     spinor xFAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
+    spinor xGMRES(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
     //spinor xAMG(LevelV::Nsites[0],c_vector(LevelV::DOF[0],0));
 
 
@@ -115,10 +116,11 @@ int main() {
     Tests test(GConf, rhs, x0 ,m0);
     test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
     //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
-    //test.SAP(xSAP,400,true);
-    //test.FGMRES_sap(XFGMRES_SAP,true);
+    test.SAP(xSAP,400,true);
+    test.FGMRES_sap(XFGMRES_SAP,true);
 
-    test.fgmresAMG(xFAMG, true);
+    test.GMRES(xGMRES, 50, 100,true);
+    //test.fgmresAMG(xFAMG, true);
 
     return 0;
 }
