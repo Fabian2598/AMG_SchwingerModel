@@ -56,7 +56,7 @@ int main() {
 
     AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
     AMGV::Nit = 0;
-    AMGV::SAP_test_vectors_iterations = 4;
+    AMGV::SAP_test_vectors_iterations = 2;
     //-0.1023;//-0.0933;//-0.18840579710144945; //0.0709
     double m0 = mass::m0; 
 
