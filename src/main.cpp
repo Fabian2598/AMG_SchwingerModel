@@ -89,7 +89,7 @@ int main() {
 
     //Parameters in variables.cpp
 
-    //printParameters();
+    printParameters();
     std::cout << "Conf read from " << confFile << std::endl;
     std::cout << "rhs read from " << rhsFile << std::endl;
     
@@ -116,11 +116,11 @@ int main() {
     Tests test(GConf, rhs, x0 ,m0);
     test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
     //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
-    test.SAP(xSAP,400,true);
-    test.FGMRES_sap(XFGMRES_SAP,true);
+    //test.SAP(xSAP,400,true);
+    //test.FGMRES_sap(XFGMRES_SAP,true);
 
-    test.GMRES(xGMRES, 50, 100,true);
-    //test.fgmresAMG(xFAMG, true);
+    //test.GMRES(xGMRES, 50, 100,true);
+    test.fgmresAMG(xFAMG, true);
 
     return 0;
 }

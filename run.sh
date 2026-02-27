@@ -33,7 +33,7 @@ for BETA in 2 4 6; do
         Mass2="-00281"
         m2=-0.0281
 	fi
-	for N in 128; do
+	for N in 512; do
         echo "================== BETA = ${BETA}, N = ${N}, M0 = ${mc} =================="
         echo ""
 	    printf "${BETA}\n${mc}\n${CONFID}\n../../SchwingerModel/fermions/SchwingerModel/confs/b${BETA}_${N}x${N}/m${Mc}/2D_U1_Ns${N}_Nt${N}_b${BETA}0000_m${Massc}_${CONFID}.ctxt\n../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf${CONFID}_${N}x${N}_b${BETA}0000_m${Massc}.rhs" >> inputs
@@ -42,13 +42,13 @@ for BETA in 2 4 6; do
         echo ""
         echo ""
 
-        echo "================== BETA = ${BETA}, N = ${N}, M0 = ${m1} =================="
-        echo ""
-	    printf "${BETA}\n${m1}\n${CONFID}\n../../SchwingerModel/fermions/SchwingerModel/confs/b${BETA}_${N}x${N}/m${M1}/2D_U1_Ns${N}_Nt${N}_b${BETA}0000_m${Mass1}_${CONFID}.ctxt\n../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf${CONFID}_${N}x${N}_b${BETA}0000_m${Mass1}.rhs" >> inputs
-        ./AMG_${N}x${N}_l4 < inputs
-        rm inputs
-        echo ""
-        echo ""
+        #echo "================== BETA = ${BETA}, N = ${N}, M0 = ${m1} =================="
+        #echo ""
+	    #printf "${BETA}\n${m1}\n${CONFID}\n../../SchwingerModel/fermions/SchwingerModel/confs/b${BETA}_${N}x${N}/m${M1}/2D_U1_Ns${N}_Nt${N}_b${BETA}0000_m${Mass1}_${CONFID}.ctxt\n../../SchwingerModel/fermions/SchwingerModel/confs/rhs/rhs_conf${CONFID}_${N}x${N}_b${BETA}0000_m${Mass1}.rhs" >> inputs
+        #./AMG_${N}x${N}_l4 < inputs
+        #rm inputs
+        #echo ""
+        #echo ""
         
         echo "================== BETA = ${BETA}, N = ${N}, M0 = ${m2} =================="
         echo ""
