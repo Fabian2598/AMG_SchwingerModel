@@ -19,12 +19,12 @@ set(SRC_FILES
 )
 
 #--------------------------Lattice dimensions---------------------------#
-set(NS "1024") #Space
-set(NT "1024") #Time
+set(NS "256") #Space
+set(NT "256") #Time
 #-----------------------------------------------------------------------#
 
 #--------------------------------Levels---------------------------------#
-set(LEVELS "4") #Number of AMG levels (Including the finest and coarsest level)
+set(LEVELS "3") #Number of AMG levels (Including the finest and coarsest level)
 #-----------------------------------------------------------------------#
 
 configure_file(${CMAKE_SOURCE_DIR}/include/config.h.in ${CMAKE_SOURCE_DIR}/include/config.h)

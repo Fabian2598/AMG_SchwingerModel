@@ -60,9 +60,9 @@ void readParameters(const std::string& inputFile){
     LevelV::SAP_Block_x[maxLevel] = 1; //For the coarsest level we don't need a blocking, but it is necessary to define some numbers here.
     LevelV::SAP_Block_t[maxLevel] = 1;
 
-    LevelV::GMRES_restart_len[maxLevel] = 20;
-    LevelV::GMRES_restarts[maxLevel] = 20;
-    LevelV::GMRES_tol[maxLevel] = 0.1;
+    LevelV::GMRES_restart_len[maxLevel] = AMGV::gmres_restart_length_coarse_level;
+    LevelV::GMRES_restarts[maxLevel] = AMGV::gmres_restarts_coarse_level;
+    LevelV::GMRES_tol[maxLevel] = AMGV::gmres_tol_coarse_level;
 
     infile.close();
     std::cout << "Parameters read from " << NameData.str() << std::endl;

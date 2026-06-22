@@ -54,7 +54,7 @@ int main() {
     Coordinates(); //Builds array with coordinates of the lattice points x * Nt + t
     boundary(); //Boundaries for every level
 
-    AMGV::cycle = 1; //K-cycle = 1, V-cycle = 0
+    AMGV::cycle = 0; //K-cycle = 1, V-cycle = 0
     AMGV::Nit = 0;
     AMGV::SAP_test_vectors_iterations = 2;
     //-0.1023;//-0.0933;//-0.18840579710144945; //0.0709
@@ -114,7 +114,7 @@ int main() {
 
     
     Tests test(GConf, rhs, x0 ,m0);
-    test.BiCG(x_bi, 10000,true); //BiCGstab for comparison  
+    //test.BiCG(x_bi, 3000,true); //BiCGstab for comparison  
     //test.CG(x_cg); //Conjugate Gradient for inverting the normal equations
     //test.SAP(xSAP,400,true);
     //test.FGMRES_sap(XFGMRES_SAP,true);
